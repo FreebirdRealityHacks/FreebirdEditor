@@ -22,7 +22,6 @@ namespace Oculus.Interaction
         protected virtual void Awake()
         {
             InteractableView = _interactableView as IInteractableView;
-
         }
 
         protected bool _started = false;
@@ -91,7 +90,6 @@ namespace Oculus.Interaction
         }
 
         private void UpdateVisualState(InteractableStateChangeArgs args) => UpdateVisual();
-
 
         private void _DrawFingerTip()
         {
