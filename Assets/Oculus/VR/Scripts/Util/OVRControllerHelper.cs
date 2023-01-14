@@ -90,7 +90,7 @@ public class OVRControllerHelper : MonoBehaviour
 		TouchPro = 4,
 	}
 
-	private ControllerType activeControllerType = ControllerType.Rift;
+	private ControllerType activeControllerType = ControllerType.TouchPro;
 
 	private bool m_prevControllerConnected = false;
 	private bool m_prevControllerConnectedCached = false;
@@ -110,6 +110,7 @@ public class OVRControllerHelper : MonoBehaviour
 	
 		OVRPlugin.SystemHeadset headset = OVRPlugin.GetSystemHeadsetType();
 		OVRPlugin.Hand controllerHand = m_controller == OVRInput.Controller.LTouch ? OVRPlugin.Hand.HandLeft : OVRPlugin.Hand.HandRight;
+		Debug.Log("***** current headset: " + headset);
 		switch (headset)
 		{
 			case OVRPlugin.SystemHeadset.Rift_CV1:

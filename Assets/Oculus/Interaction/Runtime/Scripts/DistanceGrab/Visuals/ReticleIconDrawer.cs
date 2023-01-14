@@ -115,6 +115,7 @@ namespace Oculus.Interaction.DistanceReticles
         protected override void Align(ReticleDataIcon data)
         {
             this.transform.position = data.ProcessHitPoint(DistanceInteractor.HitPoint);
+            Debug.Log("***** Reticle align " + this.transform.position + "| render: " + _renderer.enabled);
 
             if (_renderer.enabled)
             {
