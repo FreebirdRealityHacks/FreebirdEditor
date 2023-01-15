@@ -1,14 +1,14 @@
-using System.Collections;
-using System.Collections.Generic;
-using Oculus.Interaction;
+using System;
 using Oculus.Interaction.Input;
 using UnityEngine;
 using UnityEngine.Assertions;
 
 namespace Oculus.Interaction
 {
-    public class FingertipInteractable : MonoBehaviour
+    public class FingerTipInteractable : MonoBehaviour
     {
+        public event Action<FingerTipInteractableStateChangeArgs> WhenChanged;
+
         [SerializeField, Interface(typeof(IHand))]
         private MonoBehaviour _hand;
         public IHand Hand => _hand as IHand;
@@ -17,9 +17,14 @@ namespace Oculus.Interaction
         private MonoBehaviour _interactableView;
         private IInteractableView InteractableView;
 
-        private Renderer _renderer;
+        [SerializeField]
+        private Renderer debugSphere;
 
-        protected virtual void Awake()
+        private Vector3 _lastFingertipPos;
+        InteractableState _previousState;
+        InteractableState _newState;
+
+        protected void Awake()
         {
             InteractableView = _interactableView as IInteractableView;
         }
@@ -27,6 +32,7 @@ namespace Oculus.Interaction
         protected bool _started = false;
         private bool _isVisible = true;
         public bool IsVisible => _isVisible;
+        protected bool _needsUpdate = false;
 
         void Start()
         {
@@ -34,37 +40,41 @@ namespace Oculus.Interaction
 
             Assert.IsNotNull(Hand);
             Assert.IsNotNull(InteractableView);
-            _renderer = GetComponent<Renderer>();
 
-            UpdateVisual();
+            UpdateDebugVisual();
             this.EndStart(ref _started);
         }
 
         void Update()
         {
-
+            if (_needsUpdate)
+            {
+                WhenChanged(new FingerTipInteractableStateChangeArgs(_previousState, _newState, _lastFingertipPos));
+            }
         }
 
-        protected virtual void LateUpdate()
+        protected void LateUpdate()
         {
             if (Hand == null || !IsVisible)
             {
+                _needsUpdate = false;
                 return;
             }
-
-            _DrawFingerTip();
+            _needsUpdate = true;
+            _lastFingertipPos = _fingerTipPosition() ?? Vector3.zero;
+            debugSphere.transform.position = _lastFingertipPos;
         }
 
-        protected virtual void OnEnable()
+        protected void OnEnable()
         {
             if (_started)
             {
-                UpdateVisual();
+                UpdateDebugVisual();
                 InteractableView.WhenStateChanged += UpdateVisualState;
             }
         }
 
-        protected virtual void OnDisable()
+        protected void OnDisable()
         {
             if (_started)
             {
@@ -72,32 +82,58 @@ namespace Oculus.Interaction
             }
         }
 
-        protected virtual void UpdateVisual()
+        protected void UpdateDebugVisual()
         {
             switch (InteractableView.State)
             {
                 case InteractableState.Select:
-                    _renderer.material.color = Color.green;
+                    debugSphere.material.color = Color.green;
                     break;
                 case InteractableState.Hover:
-                    _renderer.material.color = Color.yellow;
+                    debugSphere.material.color = Color.yellow;
                     break;
                 default:
-                    _renderer.material.color = Color.grey;
-
+                    debugSphere.material.color = Color.grey;
                     break;
             }
+            _needsUpdate = true;
         }
 
-        private void UpdateVisualState(InteractableStateChangeArgs args) => UpdateVisual();
+        protected void UpdateVisuals(InteractableStateChangeArgs args)
+        {
+            _previousState = args.PreviousState;
+            _newState = args.NewState;
+            UpdateDebugVisual();
+        }
 
-        private void _DrawFingerTip()
+        private void UpdateVisualState(InteractableStateChangeArgs args) => UpdateVisuals(args);
+
+        private Vector3? _fingerTipPosition()
         {
             HandJointId jointId = HandJointUtils.GetHandFingerTip(HandFinger.Index);
             if (Hand.GetJointPose(jointId, out Pose jointPose))
             {
-                transform.position = jointPose.position;
+                return jointPose.position;
             }
+            return null;
         }
     }
+
+    public struct FingerTipInteractableStateChangeArgs
+    {
+        public InteractableState PreviousState { get; }
+        public InteractableState NewState { get; }
+        public Vector3? FingertipPosition { get; }
+
+        public FingerTipInteractableStateChangeArgs(
+            InteractableState previousState,
+            InteractableState newState,
+            Vector3? fingertipPosition)
+        {
+            PreviousState = previousState;
+            NewState = newState;
+            FingertipPosition = fingertipPosition;
+        }
+    }
+
 }
