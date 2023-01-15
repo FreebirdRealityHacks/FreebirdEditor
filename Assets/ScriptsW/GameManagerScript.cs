@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using TMPro;
+using System.IO;
 
 public class GameManagerScript : MonoBehaviour
 {
@@ -62,12 +63,24 @@ public class GameManagerScript : MonoBehaviour
                 AppendEchoEffect();
             }
 
-            if (Input.GetKeyDown("c")) {
+            if (Input.GetKeyDown("u")) {
                 AppendBlueSkyboxEffect();
             }
 
             if (Input.GetKeyDown("p")) {
                 AppendPinkSkyboxEffect();
+            }
+
+            if (Input.GetKeyDown("j")) {
+                SaveEffectList();
+            }
+
+            if (Input.GetKeyDown("l")) {
+                LoadEffectList();
+            }
+
+            if (Input.GetKeyDown("c")) {
+                Reset();
             }
             
         }
@@ -164,11 +177,17 @@ public class GameManagerScript : MonoBehaviour
 
     public void Clapped() {
         Vector3 lastClappedPos = GetComponent<Oculus.Interaction.HandClapInteractor>().GetLastClappedPosition();
-        Debug.Log(lastClappedPos);
+        Vector3 playerPos = player.transform.position;
+
+        // float scale = 2f;
+        float scale = Random.Range(3f, 4f);
+
+        Vector3 effectPosition = (lastClappedPos - playerPos) * scale + playerPos;
+        effectPosition = new Vector3(effectPosition.x, lastClappedPos.y, effectPosition.z);
         if (Random.Range(0, 2) == 0) {
-            ApplyFireCircleVFX(new Vector2(lastClappedPos.x, lastClappedPos.y));
+            ApplyFireCircleVFX(effectPosition);
         } else {
-            ApplyFireworkVFX(new Vector2(lastClappedPos.x, lastClappedPos.y));
+            ApplyFireworkVFX(effectPosition);
         }
     }
 
@@ -260,14 +279,14 @@ public class GameManagerScript : MonoBehaviour
     }
 
     public void ApplyRandomFireworkVFX() {
-        ApplyFireworkVFX(new Vector2(Random.Range(-1f, 1f), Random.Range(1.0f, 1.5f)));
+        ApplyFireworkVFX(new Vector3(Random.Range(-1f, 1f), Random.Range(1.0f, 1.5f), player.transform.localPosition.z + 1.5f));
     }
 
-    public void ApplyFireworkVFX(Vector2 position) {
+    public void ApplyFireworkVFX(Vector3 position) {
         CreationElement element1 = new CreationElement();
         element1.type = CreationElement.Type.VFX;
         element1.effectName = CreationElement.EffectName.Firework;
-        element1.position = new Vector3(position.x, position.y, player.transform.localPosition.z + 1.5f);
+        element1.position = position;
         element1.startTime = audioSource.time + 0.05f;
         element1.endTime = element1.startTime + 2f;
 
@@ -276,14 +295,14 @@ public class GameManagerScript : MonoBehaviour
     }
 
     public void ApplyRandomFireCircleVFX() {
-        ApplyFireCircleVFX(new Vector2(Random.Range(-1f, 1f), Random.Range(1.0f, 1.5f)));
+        ApplyFireCircleVFX(new Vector3(Random.Range(-1f, 1f), Random.Range(1.0f, 1.5f), player.transform.localPosition.z + 1.5f));
     }
 
-    public void ApplyFireCircleVFX(Vector2 position) {
+    public void ApplyFireCircleVFX(Vector3 position) {
         CreationElement element1 = new CreationElement();
         element1.type = CreationElement.Type.VFX;
         element1.effectName = CreationElement.EffectName.FireCircle;
-        element1.position = new Vector3(position.x, position.y, player.transform.localPosition.z + 1.5f);
+        element1.position = position;
         element1.startTime = audioSource.time + 0.05f;
         element1.endTime = element1.startTime + 2f;
 
@@ -361,5 +380,70 @@ public class GameManagerScript : MonoBehaviour
 
     public void StopEcho(){
         echoFilter.enabled = false;
+    }
+
+    public void Reset(){
+        timelineController.ClearTimeline();
+        effectList = new List<CreationElement>();
+    }
+
+    public void SaveEffectList(){
+        string json;
+        for (int i=0; i<effectList.Count; i++) {
+            json = JsonUtility.ToJson(effectList[i]);
+            string path = GetFilePath("effectlist" + i.ToString() + ".txt");
+            FileStream fileStream = new FileStream(path, FileMode.Create);
+
+            using (StreamWriter writer = new StreamWriter(fileStream))
+            {
+                writer.Write(json);
+                Debug.Log(json);
+            }
+        }
+    }
+
+    public void ClearSave()
+    {
+        string[] files = Directory.GetFiles(Application.persistentDataPath);
+
+        for (int i=0; i<files.Length; i++) {
+            if (File.Exists(files[i])) {
+                File.Delete(files[i]);
+            }
+            else {
+                Debug.LogWarning("File not found");
+            }
+        }
+    }
+
+    public void LoadEffectList(){
+        string json;
+        string[] files = Directory.GetFiles(Application.persistentDataPath);
+        effectList = new List<CreationElement>();
+        timelineController.ClearTimeline();
+
+        for (int i=0; i<files.Length; i++) {
+            if (File.Exists(files[i])) {
+                using (StreamReader reader = new StreamReader(files[i]))
+                {
+                    json = reader.ReadToEnd();
+                    effectList.Add(new CreationElement());
+                    JsonUtility.FromJsonOverwrite(json, effectList[effectList.Count-1]);
+                    timelineController.AddCreationElement(effectList[effectList.Count-1]);                
+                }
+            }
+            else {
+                Debug.LogWarning("File not found");
+            }
+        }
+        
+        string path = GetFilePath("effectlist.txt");
+        
+    }
+    
+    private string GetFilePath(string fileName)
+    {
+        Debug.Log(Application.persistentDataPath);
+        return Application.persistentDataPath + "/" + fileName;
     }
 }

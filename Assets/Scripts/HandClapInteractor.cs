@@ -34,7 +34,7 @@ namespace Oculus.Interaction
         protected bool _started = false;
         protected bool _needsUpdate = false;
 
-        private bool _shouldTrigger = true;
+        private bool _shouldTrigger = false;
 
         void Start()
         {

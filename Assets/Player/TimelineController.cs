@@ -214,7 +214,9 @@ public class TimelineController : MonoBehaviour
                     float previousEndTime = channel.creationElements[k].endTime;
 
                     if (creationElement.startTime <= previousEndTime && creationElement.endTime >= previousStartTime) {
-                        creationBlockPosY = channel.creationElementBlocks[k].transform.localPosition.y + trackHeight + 0.02f;
+                        if (channel.creationElementBlocks[k] != null) {
+                            creationBlockPosY = channel.creationElementBlocks[k].transform.localPosition.y + trackHeight + 0.02f;
+                        }
                     }
                 }
 
@@ -328,5 +330,28 @@ public class TimelineController : MonoBehaviour
         timelineCursor.SetActive(true);
         //timelineLabelCanvas.SetActive(false);
 
+    }
+    
+    public void ClearTimeline() {
+        // this function clears blocks
+        // to clear effects, in GameManagerScript:
+        // effectList = new List<CreationElement>();
+        for (int i=0; i<_channels.Count; i++) {
+            for (int j=0; j<_channels[i].creationElementBlocks.Count; j++) {
+                if (_channels[i].creationElementBlocks != null) {
+                    Destroy(_channels[i].creationElementBlocks[j]);
+                }
+            }
+        }
+    }
+
+    public void LoadCreationElementBlock(CreationElement creationElement) {
+        Debug.Log(creationElement.type);
+
+        GameObject creationElementBlock = Instantiate(trackPrefab);
+        Color randomColor = COLORS[random.Next(0, COLORS.Length)];
+
+        creationElementBlock.GetComponent<Renderer>().material.color = randomColor;
+        creationElementBlock.transform.localPosition = creationElement.position;
     }
 }
