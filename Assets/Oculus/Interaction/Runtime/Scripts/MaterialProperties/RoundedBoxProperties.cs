@@ -36,7 +36,7 @@ namespace Oculus.Interaction
         private float _height = 1.0f;
 
         [SerializeField]
-        private Color _color = Color.white;
+        public Color _color;
 
         [SerializeField]
         private Color _borderColor = Color.black;
@@ -60,6 +60,18 @@ namespace Oculus.Interaction
         private float _borderOuterRadius;
 
         #region Properties
+
+        public void SelectColor(){
+            _color = Color.magenta;
+            UpdateMaterialPropertyBlock();
+            //MaterialPropertyBlock block = _editor.MaterialPropertyBlock;
+
+        }
+
+        public void DeselectColor(){
+            _color = Color.black;
+            UpdateMaterialPropertyBlock();
+        }
 
         public float Width
         {

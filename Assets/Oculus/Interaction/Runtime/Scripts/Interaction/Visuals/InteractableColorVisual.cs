@@ -64,6 +64,15 @@ namespace Oculus.Interaction
 
         protected bool _started = false;
 
+        public void SelectColor(){
+            _editor.MaterialPropertyBlock.SetColor(_colorShaderID, Color.magenta);
+            _normalColorState.Color = Color.magenta;
+        }
+
+        public void DeselectColor(){
+            _editor.MaterialPropertyBlock.SetColor(_colorShaderID, Color.white);
+        }
+
         protected virtual void Awake()
         {
             InteractableView = _interactableView as IInteractableView;
