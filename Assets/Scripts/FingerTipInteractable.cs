@@ -1,7 +1,7 @@
-using System;
 using Oculus.Interaction.Input;
 using UnityEngine;
 using UnityEngine.Assertions;
+using System;
 
 namespace Oculus.Interaction
 {
@@ -62,7 +62,10 @@ namespace Oculus.Interaction
             }
             _needsUpdate = true;
             _lastFingertipPos = _fingerTipPosition() ?? Vector3.zero;
-            debugSphere.transform.position = _lastFingertipPos;
+            if (debugSphere != null)
+            {
+                debugSphere.transform.position = _lastFingertipPos;
+            }
         }
 
         protected void OnEnable()
@@ -84,17 +87,20 @@ namespace Oculus.Interaction
 
         protected void UpdateDebugVisual()
         {
-            switch (InteractableView.State)
+            if (debugSphere != null)
             {
-                case InteractableState.Select:
-                    debugSphere.material.color = Color.green;
-                    break;
-                case InteractableState.Hover:
-                    debugSphere.material.color = Color.yellow;
-                    break;
-                default:
-                    debugSphere.material.color = Color.grey;
-                    break;
+                switch (InteractableView.State)
+                {
+                    case InteractableState.Select:
+                        debugSphere.material.color = Color.green;
+                        break;
+                    case InteractableState.Hover:
+                        debugSphere.material.color = Color.yellow;
+                        break;
+                    default:
+                        debugSphere.material.color = Color.grey;
+                        break;
+                }
             }
             _needsUpdate = true;
         }

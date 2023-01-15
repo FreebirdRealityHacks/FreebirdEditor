@@ -12,8 +12,9 @@ public class GameManagerScript : MonoBehaviour
     public HashSet<CreationElement> effectsPlaying = new HashSet<CreationElement>();
     public Material skyboxMaterial;
     public GameObject player;
+    public Oculus.Interaction.ScrubberUI scrubberUI;
 
-    public GameObject scrubber;
+    private float previousScrubberValue;
 
     //public TextMeshProUGUI timeText;
     public TMP_Text timeText;
@@ -40,6 +41,8 @@ public class GameManagerScript : MonoBehaviour
     {
         StopReverb();
         StopEcho();
+
+        previousScrubberValue = scrubberUI.value;
     }
 
     void Update(){
@@ -113,7 +116,15 @@ public class GameManagerScript : MonoBehaviour
         }
 
         // seek
-        float seek = scrubber.transform.localRotation.z;
+        float seek = scrubberUI.value - previousScrubberValue;
+        previousScrubberValue = scrubberUI.value;
+
+        if (!Mathf.Approximately(seek, 0)) {
+            float seekTime = audioSource.time + seek * 20f * Time.deltaTime;
+            if (0 < seekTime && seekTime < audioSource.clip.length) {
+                audioSource.time = seekTime;
+            }
+        }
 
         if (!Mathf.Approximately(Input.GetAxis("Vertical"), 0)) {
             float seekTime = audioSource.time + Input.GetAxis("Vertical") * 20f * Time.deltaTime;
