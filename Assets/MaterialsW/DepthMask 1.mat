@@ -8,7 +8,7 @@ Material:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_Name: DepthMask 1
-  m_Shader: {fileID: 4800000, guid: cd8e12a9425a2334280779854b4e70b9, type: 3}
+  m_Shader: {fileID: 4800000, guid: 25f84adbaaf24ee4097f8129cb356fb1, type: 3}
   m_ValidKeywords: []
   m_InvalidKeywords: []
   m_LightmapFlags: 4

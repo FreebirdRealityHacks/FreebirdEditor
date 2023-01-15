@@ -65,6 +65,7 @@ public class TimelineController : MonoBehaviour
         _initialTimelinePosition = new Vector3(0, 1, 0);
         _channels.Add(new Channel(CreationElement.Type.SFX, true));
         _channels.Add(new Channel(CreationElement.Type.VFX, false));
+        _channels.Add(new Channel(CreationElement.Type.Skybox, false));
     }
 
     public void AddCreationElement(CreationElement element) {
@@ -76,6 +77,11 @@ public class TimelineController : MonoBehaviour
         if (element.type == CreationElement.Type.VFX) {
             Channel vfxChannel = _channels[1];
             vfxChannel.creationElementsToAdd.Add(element);
+        }
+
+        if (element.type == CreationElement.Type.Skybox) {
+            Channel skyboxChannel = _channels[2];
+            skyboxChannel.creationElementsToAdd.Add(element);
         }
     }
 
@@ -216,9 +222,6 @@ public class TimelineController : MonoBehaviour
                 float channelPosX = timelineStartingPosX + (channelI + 1) * (trackWidth + gap);
                 float blockLength = creationElement.endTime - creationElement.startTime;
 
-                Debug.Log("CreationElement StartTime: " + creationElement.startTime);
-                Debug.Log(creationElement);
-
                 // Set Block position
                 creationElementBlock.transform.localPosition = new Vector3(channelPosX, creationBlockPosY, creationElement.startTime + blockLength / 2);
 
@@ -313,16 +316,14 @@ public class TimelineController : MonoBehaviour
         return tex;
     }
 
-    public void EnterPlayMode() {
-        Debug.Log("timeline enter playmode");
+    public void EnterPreviewMode() {
         timeline.SetActive(false);
         timelineCursor.SetActive(false);
         //timelineLabelCanvas.SetActive(false);
 
     }
 
-    public void ExitPlayMode() {
-        Debug.Log("timeline exit playmode");
+    public void ExitPreviewMode() {
         timeline.SetActive(true);
         timelineCursor.SetActive(true);
         //timelineLabelCanvas.SetActive(false);

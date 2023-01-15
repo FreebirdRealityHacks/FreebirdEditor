@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using TMPro;
 
 public class GameManagerScript : MonoBehaviour
 {
@@ -8,16 +9,19 @@ public class GameManagerScript : MonoBehaviour
     public TimelineController timelineController;
     public List<CreationElement> effectList = new List<CreationElement>();
     public HashSet<CreationElement> effectsPlaying = new HashSet<CreationElement>();
+    public Material skyboxMaterial;
     public GameObject player;
 
+    //public TextMeshProUGUI timeText;
+    public TMP_Text timeText;
+
     enum GameMode {
-        Record,
         Edit,
-        Play
+        Preview
     }
 
     // TODO: Change to Edit
-    GameMode gameMode = GameMode.Record;
+    GameMode gameMode = GameMode.Edit;
 
 
     // Visual Effects
@@ -39,29 +43,14 @@ public class GameManagerScript : MonoBehaviour
     void Update(){
         GameMode previousGameMode = gameMode;
 
-        if (Input.GetKeyDown("t")) {
-            gameMode = GameMode.Edit;
-        }
-
-
-        if (Input.GetKeyDown("y")) {
-            gameMode = GameMode.Play;
-        }
-
-
-        if (Input.GetKeyDown("u")) {
-            gameMode = GameMode.Record;
-        }
-
-
         //readinput when press a , create object with current time and position at cursor
-        if (gameMode == GameMode.Record) {
+        if (gameMode == GameMode.Edit) {
             if (Input.GetKeyDown("v")) {
-                AppendVFX1();
+                ApplyFireworkVFX();
             }
 
             if (Input.GetKeyDown("b")) {
-                AppendVFX2();
+                ApplyFireCircleVFX();
             }
 
             if (Input.GetKeyDown("r")) {
@@ -71,20 +60,34 @@ public class GameManagerScript : MonoBehaviour
             if (Input.GetKeyDown("e")) {
                 AppendEchoEffect();
             }
+
+            if (Input.GetKeyDown("c")) {
+                AppendBlueSkyboxEffect();
+            }
+
+            if (Input.GetKeyDown("p")) {
+                AppendPinkSkyboxEffect();
+            }
+            
         }
 
-        bool enteredPlayMode = previousGameMode != GameMode.Play && gameMode == GameMode.Play;
-        if (enteredPlayMode) {
-            timelineController.EnterPlayMode();
+        bool enteredPreviewMode = previousGameMode != GameMode.Preview && gameMode == GameMode.Preview;
+        if (enteredPreviewMode) {
+            timelineController.EnterPreviewMode();
             audioSource.time = 0;
             audioSource.Play();
         }
 
-        bool leftPlayMode = previousGameMode == GameMode.Play && gameMode != GameMode.Play;
-        if (leftPlayMode) {
-            timelineController.ExitPlayMode();
+        bool leftPreviewMode = previousGameMode == GameMode.Preview && gameMode != GameMode.Preview;
+        if (leftPreviewMode) {
+            timelineController.ExitPreviewMode();
             audioSource.Pause();
         }
+
+        int numSecondsElapsed = Mathf.FloorToInt(audioSource.time);
+        int totalSeconds = Mathf.FloorToInt(audioSource.clip.length);
+
+        timeText.text = SerializeSeconds(numSecondsElapsed) + "/" + SerializeSeconds(totalSeconds);
 
         // Input play/pause
         if (Input.GetKeyDown("space")) {
@@ -97,7 +100,10 @@ public class GameManagerScript : MonoBehaviour
 
         // seek
         if (!Mathf.Approximately(Input.GetAxis("Vertical"), 0)) {
-            audioSource.time += Input.GetAxis("Vertical") * 20f * Time.deltaTime;
+            float seekTime = audioSource.time + Input.GetAxis("Vertical") * 20f * Time.deltaTime;
+            if (0 < seekTime && seekTime < audioSource.clip.length) {
+                audioSource.time = seekTime;
+            }
         }
 
         if (audioSource.isPlaying) {
@@ -110,6 +116,31 @@ public class GameManagerScript : MonoBehaviour
                     }
                 }
             }
+
+            CreationElement.EffectName skyboxType = CreationElement.EffectName.NeutralSkybox;
+
+            for (int i = 0; i < effectList.Count; i += 1) {
+                CreationElement effect = effectList[i];
+                if (effect.startTime <= audioSource.time && audioSource.time <= effect.endTime) {
+                    if (effect.type == CreationElement.Type.Skybox) {
+                        skyboxType = effect.effectName;
+                    }
+                }
+            }
+
+            
+            if (skyboxType == CreationElement.EffectName.NeutralSkybox) {
+                Color neutralColor = new Color(0.6118f, 0.6118f, 0.6118f, 1f);
+                UpdateSkyboxColor(neutralColor);
+            } else if (skyboxType == CreationElement.EffectName.BlueSkybox) {
+                Color blueColor = new Color(113/255f, 130/255f, 212/255f, 1f);
+                UpdateSkyboxColor(blueColor);
+            } else if (skyboxType == CreationElement.EffectName.PinkSkybox) {
+                Color pinkColor = new Color(202/255f, 123/255f, 212/255f, 1f);
+                UpdateSkyboxColor(pinkColor);
+            }
+
+
 
             // Play SFX
 
@@ -126,6 +157,43 @@ public class GameManagerScript : MonoBehaviour
             }
         }
 
+    }
+
+    private string SerializeSeconds(int seconds) {
+        int minutes = seconds / 60;
+        int secondsLeft = seconds % 60;
+        return $"{minutes.ToString().PadLeft(2,'0')}:{secondsLeft.ToString().PadLeft(2,'0')}";
+    }
+
+    public void Play() {
+        if (!audioSource.isPlaying) {
+            audioSource.Play();
+        }
+    }
+
+    public void Pause() {
+        if (audioSource.isPlaying) {
+            audioSource.Pause();
+        }
+    }
+
+    public void Stop() {
+        audioSource.Stop();
+    }
+
+    public void Preview() {
+        gameMode = GameMode.Preview;
+    }
+
+    public void Edit() {
+        gameMode = GameMode.Edit;
+    }
+
+    void UpdateSkyboxColor(Color color) {
+        if (RenderSettings.skybox.HasProperty("_Tint"))
+            RenderSettings.skybox.SetColor("_Tint", color);
+        else if (RenderSettings.skybox.HasProperty("_SkyTint"))
+            RenderSettings.skybox.SetColor("_SkyTint", color);
     }
 
     bool IsReverbEffectEnabled() {
@@ -178,7 +246,7 @@ public class GameManagerScript : MonoBehaviour
         effectsPlaying.Remove(effect);
     }
 
-    public void AppendVFX1() {
+    public void ApplyFireworkVFX() {
         CreationElement element1 = new CreationElement();
         element1.type = CreationElement.Type.VFX;
         element1.effectName = CreationElement.EffectName.Firework;
@@ -190,7 +258,7 @@ public class GameManagerScript : MonoBehaviour
         effectList.Add(element1);
     }
 
-    public void AppendVFX2() {
+    public void ApplyFireCircleVFX() {
         CreationElement element1 = new CreationElement();
         element1.type = CreationElement.Type.VFX;
         element1.effectName = CreationElement.EffectName.FireCircle;
@@ -226,6 +294,30 @@ public class GameManagerScript : MonoBehaviour
         effectList.Add(element1);
     }
 
+    public void AppendBlueSkyboxEffect() {
+        CreationElement element1 = new CreationElement();
+        element1.type = CreationElement.Type.Skybox;
+        element1.effectName = CreationElement.EffectName.BlueSkybox;
+        element1.position = new Vector3(0, 0, 0);
+        element1.startTime = audioSource.time + 0.05f;
+        element1.endTime = element1.startTime + 1.5f;
+
+        timelineController.AddCreationElement(element1);
+        effectList.Add(element1);
+    }
+
+
+    public void AppendPinkSkyboxEffect() {
+        CreationElement element1 = new CreationElement();
+        element1.type = CreationElement.Type.Skybox;
+        element1.effectName = CreationElement.EffectName.PinkSkybox;
+        element1.position = new Vector3(0, 0, 0);
+        element1.startTime = audioSource.time + 0.05f;
+        element1.endTime = element1.startTime + 1.5f;
+
+        timelineController.AddCreationElement(element1);
+        effectList.Add(element1);
+    }
 
     public void ApplyReverb(){
         reverbFilter.enabled = true;
