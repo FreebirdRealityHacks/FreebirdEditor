@@ -263,7 +263,7 @@ public class GameManagerScript : MonoBehaviour
 
         if (effect.effectName == CreationElement.EffectName.Firework) {
             GameObject vfx = Instantiate(fireworkPrefab, effect.position, Quaternion.identity);
-            vfx.GetComponent<ParticleSystem>().startColor = new Color(255, 0, 0, 1);
+            //vfx.GetComponent<ParticleSystem>().startColor = new Color(255, 0, 0, 1);
             float gap = 0.1f;
             yield return new WaitForSeconds(effect.endTime - effect.startTime + gap);
             Destroy(vfx);
@@ -271,7 +271,7 @@ public class GameManagerScript : MonoBehaviour
 
         if (effect.effectName == CreationElement.EffectName.FireCircle) {
             GameObject vfx = Instantiate(fireCirclePrefab, effect.position, Quaternion.identity);
-            vfx.GetComponent<ParticleSystem>().startColor = new Color(255, 0, 0, 1);
+            //vfx.GetComponent<ParticleSystem>().startColor = new Color(255, 0, 0, 1);
             float gap = 0.1f;
             yield return new WaitForSeconds(effect.endTime - effect.startTime + gap);
             Destroy(vfx);

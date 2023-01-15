@@ -9,5 +9,6 @@ EditorBuildSettings:
     path: Assets/Scenes/Merge_v4_wozniak.unity
     guid: a615cac2aaed63845ba20483f5eeae83
   m_configObjects:
+    Unity.XR.Oculus.Settings: {fileID: 11400000, guid: d1a576d0e2d3b4c898f800b93c17cf9b, type: 2}
     com.unity.xr.management.loader_settings: {fileID: 11400000, guid: c4b01c6d5fd924d3ea644cc7c271b044, type: 2}
     com.unity.xr.openxr.settings4: {fileID: 11400000, guid: 8f4169cb44e1045dcbffd931be932574, type: 2}
