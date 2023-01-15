@@ -12,6 +12,8 @@ public class GameManagerScript : MonoBehaviour
     public Material skyboxMaterial;
     public GameObject player;
 
+    public GameObject scrubber;
+
     //public TextMeshProUGUI timeText;
     public TMP_Text timeText;
 
@@ -39,18 +41,17 @@ public class GameManagerScript : MonoBehaviour
         StopEcho();
     }
 
-
     void Update(){
         GameMode previousGameMode = gameMode;
 
         //readinput when press a , create object with current time and position at cursor
         if (gameMode == GameMode.Edit) {
             if (Input.GetKeyDown("v")) {
-                ApplyFireworkVFX();
+                ApplyRandomFireworkVFX();
             }
 
             if (Input.GetKeyDown("b")) {
-                ApplyFireCircleVFX();
+                ApplyRandomFireCircleVFX();
             }
 
             if (Input.GetKeyDown("r")) {
@@ -99,6 +100,8 @@ public class GameManagerScript : MonoBehaviour
         }
 
         // seek
+        float seek = scrubber.transform.localRotation.z;
+
         if (!Mathf.Approximately(Input.GetAxis("Vertical"), 0)) {
             float seekTime = audioSource.time + Input.GetAxis("Vertical") * 20f * Time.deltaTime;
             if (0 < seekTime && seekTime < audioSource.clip.length) {
@@ -157,6 +160,16 @@ public class GameManagerScript : MonoBehaviour
             }
         }
 
+    }
+
+    public void Clapped() {
+        Vector3 lastClappedPos = GetComponent<Oculus.Interaction.HandClapInteractor>().GetLastClappedPosition();
+        Debug.Log(lastClappedPos);
+        if (Random.Range(0, 2) == 0) {
+            ApplyFireCircleVFX(new Vector2(lastClappedPos.x, lastClappedPos.y));
+        } else {
+            ApplyFireworkVFX(new Vector2(lastClappedPos.x, lastClappedPos.y));
+        }
     }
 
     private string SerializeSeconds(int seconds) {
@@ -246,11 +259,15 @@ public class GameManagerScript : MonoBehaviour
         effectsPlaying.Remove(effect);
     }
 
-    public void ApplyFireworkVFX() {
+    public void ApplyRandomFireworkVFX() {
+        ApplyFireworkVFX(new Vector2(Random.Range(-1f, 1f), Random.Range(1.0f, 1.5f)));
+    }
+
+    public void ApplyFireworkVFX(Vector2 position) {
         CreationElement element1 = new CreationElement();
         element1.type = CreationElement.Type.VFX;
         element1.effectName = CreationElement.EffectName.Firework;
-        element1.position = new Vector3(Random.Range(-1f, 1f), Random.Range(1.0f, 1.5f), player.transform.localPosition.z + 1.5f);
+        element1.position = new Vector3(position.x, position.y, player.transform.localPosition.z + 1.5f);
         element1.startTime = audioSource.time + 0.05f;
         element1.endTime = element1.startTime + 2f;
 
@@ -258,11 +275,15 @@ public class GameManagerScript : MonoBehaviour
         effectList.Add(element1);
     }
 
-    public void ApplyFireCircleVFX() {
+    public void ApplyRandomFireCircleVFX() {
+        ApplyFireCircleVFX(new Vector2(Random.Range(-1f, 1f), Random.Range(1.0f, 1.5f)));
+    }
+
+    public void ApplyFireCircleVFX(Vector2 position) {
         CreationElement element1 = new CreationElement();
         element1.type = CreationElement.Type.VFX;
         element1.effectName = CreationElement.EffectName.FireCircle;
-        element1.position = new Vector3(Random.Range(-1f, 1f), Random.Range(1.0f, 1.5f), player.transform.localPosition.z + 1.5f);
+        element1.position = new Vector3(position.x, position.y, player.transform.localPosition.z + 1.5f);
         element1.startTime = audioSource.time + 0.05f;
         element1.endTime = element1.startTime + 2f;
 
