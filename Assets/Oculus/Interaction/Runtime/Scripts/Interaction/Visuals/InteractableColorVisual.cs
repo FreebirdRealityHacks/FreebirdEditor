@@ -69,7 +69,6 @@ namespace Oculus.Interaction
             _normalColorState.Color = Color.magenta;
         }
 
-
         public void DeselectColor(){
             _editor.MaterialPropertyBlock.SetColor(_colorShaderID, Color.white);
         }
