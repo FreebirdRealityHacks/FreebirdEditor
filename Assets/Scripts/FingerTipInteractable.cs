@@ -2,11 +2,15 @@ using Oculus.Interaction.Input;
 using UnityEngine;
 using UnityEngine.Assertions;
 using System;
+using UnityEngine.Events;
 
 namespace Oculus.Interaction
 {
     public class FingerTipInteractable : MonoBehaviour
     {
+        // Update only:
+        // - When state changes
+        // - On Update for Hover or Select State
         public event Action<FingerTipInteractableStateChangeArgs> WhenChanged;
 
         [SerializeField, Interface(typeof(IHand))]
@@ -17,10 +21,10 @@ namespace Oculus.Interaction
         private MonoBehaviour _interactableView;
         private IInteractableView InteractableView;
 
-        [SerializeField]
-        private Renderer debugSphere;
+        //[SerializeField]
+        //private Renderer debugSphere;
 
-        private Vector3 _lastFingertipPos;
+        private Vector3? _lastFingertipPos;
         InteractableState _previousState;
         InteractableState _newState;
 
@@ -32,7 +36,7 @@ namespace Oculus.Interaction
         protected bool _started = false;
         private bool _isVisible = true;
         public bool IsVisible => _isVisible;
-        protected bool _needsUpdate = false;
+        protected bool _didStateChange = false;
 
         void Start()
         {
@@ -47,9 +51,10 @@ namespace Oculus.Interaction
 
         void Update()
         {
-            if (_needsUpdate)
+            if (_shouldUpdateDelegates())
             {
                 WhenChanged(new FingerTipInteractableStateChangeArgs(_previousState, _newState, _lastFingertipPos));
+                _didStateChange = false;
             }
         }
 
@@ -57,23 +62,27 @@ namespace Oculus.Interaction
         {
             if (Hand == null || !IsVisible)
             {
-                _needsUpdate = false;
+                _lastFingertipPos = null;
                 return;
             }
-            _needsUpdate = true;
-            _lastFingertipPos = _fingerTipPosition() ?? Vector3.zero;
-            if (debugSphere != null)
-            {
-                debugSphere.transform.position = _lastFingertipPos;
+
+            if (_shouldUpdateDelegates()) {
+                _lastFingertipPos = _fingerTipPosition();
             }
+
+            //if (debugSphere != null)
+            //{
+            //    debugSphere.transform.position = _lastFingertipPos ?? Vector3.zero;
+            //}
         }
+
 
         protected void OnEnable()
         {
             if (_started)
             {
                 UpdateDebugVisual();
-                InteractableView.WhenStateChanged += UpdateVisualState;
+                InteractableView.WhenStateChanged += WhenStateChanged;
             }
         }
 
@@ -81,12 +90,13 @@ namespace Oculus.Interaction
         {
             if (_started)
             {
-                InteractableView.WhenStateChanged -= UpdateVisualState;
+                InteractableView.WhenStateChanged -= WhenStateChanged;
             }
         }
 
         protected void UpdateDebugVisual()
         {
+            /*
             if (debugSphere != null)
             {
                 switch (InteractableView.State)
@@ -101,18 +111,21 @@ namespace Oculus.Interaction
                         debugSphere.material.color = Color.grey;
                         break;
                 }
-            }
-            _needsUpdate = true;
+            }*/
         }
-
-        protected void UpdateVisuals(InteractableStateChangeArgs args)
+        protected void _WhenStateChanged(InteractableStateChangeArgs args)
         {
             _previousState = args.PreviousState;
             _newState = args.NewState;
+            _didStateChange = true;
             UpdateDebugVisual();
         }
 
-        private void UpdateVisualState(InteractableStateChangeArgs args) => UpdateVisuals(args);
+        private void WhenStateChanged(InteractableStateChangeArgs args) => _WhenStateChanged(args);
+        private bool _shouldUpdateDelegates()
+        {
+            return _didStateChange || (_newState == InteractableState.Hover || _newState == InteractableState.Select);
+        }
 
         private Vector3? _fingerTipPosition()
         {
@@ -129,7 +142,7 @@ namespace Oculus.Interaction
     {
         public InteractableState PreviousState { get; }
         public InteractableState NewState { get; }
-        public Vector3? FingertipPosition { get; }
+        public Vector3? FingertipPosition { get; } // null if hand DNE
 
         public FingerTipInteractableStateChangeArgs(
             InteractableState previousState,
@@ -141,5 +154,4 @@ namespace Oculus.Interaction
             FingertipPosition = fingertipPosition;
         }
     }
-
 }

@@ -45,6 +45,8 @@ public class GameManagerScript : MonoBehaviour
         previousScrubberValue = scrubberUI.value;
     }
 
+
+
     void Update(){
         GameMode previousGameMode = gameMode;
 
@@ -116,19 +118,29 @@ public class GameManagerScript : MonoBehaviour
         }
 
         // seek
-        float seek = scrubberUI.value - previousScrubberValue;
-        previousScrubberValue = scrubberUI.value;
+        //float scrubberValueDelta = scrubberUI.value - previousScrubberValue;
+        //previousScrubberValue = scrubberUI.value;
 
-        if (!Mathf.Approximately(seek, 0)) {
-            float seekTime = audioSource.time + seek * 20f * Time.deltaTime;
-            if (0 < seekTime && seekTime < audioSource.clip.length) {
+
+        
+
+        //Debug.Log("Seek " + seek);
+
+        if ( Mathf.Abs(scrubberUI.value) > 15) {
+            float multiplier = scrubberUI.value > 0f ? 1 : -1;
+            float seekTime = audioSource.time + multiplier * 20f * Time.deltaTime;
+            if (0.1 < seekTime && seekTime < audioSource.clip.length - .7)
+            {
+                Debug.Log("**** seek " + seekTime);
                 audioSource.time = seekTime;
             }
         }
 
         if (!Mathf.Approximately(Input.GetAxis("Vertical"), 0)) {
             float seekTime = audioSource.time + Input.GetAxis("Vertical") * 20f * Time.deltaTime;
-            if (0 < seekTime && seekTime < audioSource.clip.length) {
+            Debug.Log("Keyboard Seek " + Input.GetAxis("Vertical") * 20f * Time.deltaTime + " Seek Time" + seekTime);
+            if (0.1 < seekTime && seekTime < audioSource.clip.length - 0.7) {
+                Debug.Log("**** seek " + seekTime);
                 audioSource.time = seekTime;
             }
         }
