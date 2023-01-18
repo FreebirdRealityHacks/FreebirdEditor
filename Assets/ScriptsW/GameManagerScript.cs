@@ -1,6 +1,8 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using TMPro;
+using System.IO;
 
 public class GameManagerScript : MonoBehaviour
 {
@@ -8,16 +10,22 @@ public class GameManagerScript : MonoBehaviour
     public TimelineController timelineController;
     public List<CreationElement> effectList = new List<CreationElement>();
     public HashSet<CreationElement> effectsPlaying = new HashSet<CreationElement>();
+    public Material skyboxMaterial;
     public GameObject player;
+    public Oculus.Interaction.ScrubberUI scrubberUI;
+
+    private float previousScrubberValue;
+
+    //public TextMeshProUGUI timeText;
+    public TMP_Text timeText;
 
     enum GameMode {
-        Record,
         Edit,
-        Play
+        Preview
     }
 
     // TODO: Change to Edit
-    GameMode gameMode = GameMode.Record;
+    GameMode gameMode = GameMode.Edit;
 
 
     // Visual Effects
@@ -33,35 +41,23 @@ public class GameManagerScript : MonoBehaviour
     {
         StopReverb();
         StopEcho();
+
+        previousScrubberValue = scrubberUI.value;
     }
+
 
 
     void Update(){
         GameMode previousGameMode = gameMode;
 
-        if (Input.GetKeyDown("t")) {
-            gameMode = GameMode.Edit;
-        }
-
-
-        if (Input.GetKeyDown("y")) {
-            gameMode = GameMode.Play;
-        }
-
-
-        if (Input.GetKeyDown("u")) {
-            gameMode = GameMode.Record;
-        }
-
-
         //readinput when press a , create object with current time and position at cursor
-        if (gameMode == GameMode.Record) {
+        if (gameMode == GameMode.Edit) {
             if (Input.GetKeyDown("v")) {
-                AppendVFX1();
+                ApplyRandomFireworkVFX();
             }
 
             if (Input.GetKeyDown("b")) {
-                AppendVFX2();
+                ApplyRandomFireCircleVFX();
             }
 
             if (Input.GetKeyDown("r")) {
@@ -71,20 +67,46 @@ public class GameManagerScript : MonoBehaviour
             if (Input.GetKeyDown("e")) {
                 AppendEchoEffect();
             }
+
+            if (Input.GetKeyDown("u")) {
+                AppendBlueSkyboxEffect();
+            }
+
+            if (Input.GetKeyDown("p")) {
+                AppendPinkSkyboxEffect();
+            }
+
+            if (Input.GetKeyDown("j")) {
+                SaveEffectList();
+            }
+
+            if (Input.GetKeyDown("l")) {
+                LoadEffectList();
+            }
+
+            if (Input.GetKeyDown("c")) {
+                Reset();
+            }
+            
         }
 
-        bool enteredPlayMode = previousGameMode != GameMode.Play && gameMode == GameMode.Play;
-        if (enteredPlayMode) {
-            timelineController.EnterPlayMode();
+        bool enteredPreviewMode = previousGameMode != GameMode.Preview && gameMode == GameMode.Preview;
+        if (enteredPreviewMode) {
+            timelineController.EnterPreviewMode();
             audioSource.time = 0;
             audioSource.Play();
         }
 
-        bool leftPlayMode = previousGameMode == GameMode.Play && gameMode != GameMode.Play;
-        if (leftPlayMode) {
-            timelineController.ExitPlayMode();
+        bool leftPreviewMode = previousGameMode == GameMode.Preview && gameMode != GameMode.Preview;
+        if (leftPreviewMode) {
+            timelineController.ExitPreviewMode();
             audioSource.Pause();
         }
+
+        int numSecondsElapsed = Mathf.FloorToInt(audioSource.time);
+        int totalSeconds = Mathf.FloorToInt(audioSource.clip.length);
+
+        timeText.text = SerializeSeconds(numSecondsElapsed) + "/" + SerializeSeconds(totalSeconds);
 
         // Input play/pause
         if (Input.GetKeyDown("space")) {
@@ -96,8 +118,31 @@ public class GameManagerScript : MonoBehaviour
         }
 
         // seek
+        //float scrubberValueDelta = scrubberUI.value - previousScrubberValue;
+        //previousScrubberValue = scrubberUI.value;
+
+
+        
+
+        //Debug.Log("Seek " + seek);
+
+        if ( Mathf.Abs(scrubberUI.value) > 15) {
+            float multiplier = scrubberUI.value > 0f ? 1 : -1;
+            float seekTime = audioSource.time + multiplier * 20f * Time.deltaTime;
+            if (0.1 < seekTime && seekTime < audioSource.clip.length - .7)
+            {
+                Debug.Log("**** seek " + seekTime);
+                audioSource.time = seekTime;
+            }
+        }
+
         if (!Mathf.Approximately(Input.GetAxis("Vertical"), 0)) {
-            audioSource.time += Input.GetAxis("Vertical") * 20f * Time.deltaTime;
+            float seekTime = audioSource.time + Input.GetAxis("Vertical") * 20f * Time.deltaTime;
+            Debug.Log("Keyboard Seek " + Input.GetAxis("Vertical") * 20f * Time.deltaTime + " Seek Time" + seekTime);
+            if (0.1 < seekTime && seekTime < audioSource.clip.length - 0.7) {
+                Debug.Log("**** seek " + seekTime);
+                audioSource.time = seekTime;
+            }
         }
 
         if (audioSource.isPlaying) {
@@ -110,6 +155,31 @@ public class GameManagerScript : MonoBehaviour
                     }
                 }
             }
+
+            CreationElement.EffectName skyboxType = CreationElement.EffectName.NeutralSkybox;
+
+            for (int i = 0; i < effectList.Count; i += 1) {
+                CreationElement effect = effectList[i];
+                if (effect.startTime <= audioSource.time && audioSource.time <= effect.endTime) {
+                    if (effect.type == CreationElement.Type.Skybox) {
+                        skyboxType = effect.effectName;
+                    }
+                }
+            }
+
+            
+            if (skyboxType == CreationElement.EffectName.NeutralSkybox) {
+                Color neutralColor = new Color(0.6118f, 0.6118f, 0.6118f, 1f);
+                UpdateSkyboxColor(neutralColor);
+            } else if (skyboxType == CreationElement.EffectName.BlueSkybox) {
+                Color blueColor = new Color(113/255f, 130/255f, 212/255f, 1f);
+                UpdateSkyboxColor(blueColor);
+            } else if (skyboxType == CreationElement.EffectName.PinkSkybox) {
+                Color pinkColor = new Color(202/255f, 123/255f, 212/255f, 1f);
+                UpdateSkyboxColor(pinkColor);
+            }
+
+
 
             // Play SFX
 
@@ -126,6 +196,59 @@ public class GameManagerScript : MonoBehaviour
             }
         }
 
+    }
+
+    public void Clapped() {
+        Vector3 lastClappedPos = GetComponent<Oculus.Interaction.HandClapInteractor>().GetLastClappedPosition();
+        Vector3 playerPos = player.transform.position;
+
+        // float scale = 2f;
+        float scale = Random.Range(3f, 4f);
+
+        Vector3 effectPosition = (lastClappedPos - playerPos) * scale + playerPos;
+        effectPosition = new Vector3(effectPosition.x, lastClappedPos.y, effectPosition.z);
+        if (Random.Range(0, 2) == 0) {
+            ApplyFireCircleVFX(effectPosition);
+        } else {
+            ApplyFireworkVFX(effectPosition);
+        }
+    }
+
+    private string SerializeSeconds(int seconds) {
+        int minutes = seconds / 60;
+        int secondsLeft = seconds % 60;
+        return $"{minutes.ToString().PadLeft(2,'0')}:{secondsLeft.ToString().PadLeft(2,'0')}";
+    }
+
+    public void Play() {
+        if (!audioSource.isPlaying) {
+            audioSource.Play();
+        }
+    }
+
+    public void Pause() {
+        if (audioSource.isPlaying) {
+            audioSource.Pause();
+        }
+    }
+
+    public void Stop() {
+        audioSource.Stop();
+    }
+
+    public void Preview() {
+        gameMode = GameMode.Preview;
+    }
+
+    public void Edit() {
+        gameMode = GameMode.Edit;
+    }
+
+    void UpdateSkyboxColor(Color color) {
+        if (RenderSettings.skybox.HasProperty("_Tint"))
+            RenderSettings.skybox.SetColor("_Tint", color);
+        else if (RenderSettings.skybox.HasProperty("_SkyTint"))
+            RenderSettings.skybox.SetColor("_SkyTint", color);
     }
 
     bool IsReverbEffectEnabled() {
@@ -163,6 +286,7 @@ public class GameManagerScript : MonoBehaviour
 
         if (effect.effectName == CreationElement.EffectName.Firework) {
             GameObject vfx = Instantiate(fireworkPrefab, effect.position, Quaternion.identity);
+            //vfx.GetComponent<ParticleSystem>().startColor = new Color(255, 0, 0, 1);
             float gap = 0.1f;
             yield return new WaitForSeconds(effect.endTime - effect.startTime + gap);
             Destroy(vfx);
@@ -170,6 +294,7 @@ public class GameManagerScript : MonoBehaviour
 
         if (effect.effectName == CreationElement.EffectName.FireCircle) {
             GameObject vfx = Instantiate(fireCirclePrefab, effect.position, Quaternion.identity);
+            //vfx.GetComponent<ParticleSystem>().startColor = new Color(255, 0, 0, 1);
             float gap = 0.1f;
             yield return new WaitForSeconds(effect.endTime - effect.startTime + gap);
             Destroy(vfx);
@@ -178,11 +303,15 @@ public class GameManagerScript : MonoBehaviour
         effectsPlaying.Remove(effect);
     }
 
-    public void AppendVFX1() {
+    public void ApplyRandomFireworkVFX() {
+        ApplyFireworkVFX(new Vector3(Random.Range(-1f, 1f), Random.Range(1.0f, 1.5f), player.transform.localPosition.z + 1.5f));
+    }
+
+    public void ApplyFireworkVFX(Vector3 position) {
         CreationElement element1 = new CreationElement();
         element1.type = CreationElement.Type.VFX;
         element1.effectName = CreationElement.EffectName.Firework;
-        element1.position = new Vector3(Random.Range(-1f, 1f), Random.Range(1.0f, 1.5f), player.transform.localPosition.z + 1.5f);
+        element1.position = position;
         element1.startTime = audioSource.time + 0.05f;
         element1.endTime = element1.startTime + 2f;
 
@@ -190,11 +319,15 @@ public class GameManagerScript : MonoBehaviour
         effectList.Add(element1);
     }
 
-    public void AppendVFX2() {
+    public void ApplyRandomFireCircleVFX() {
+        ApplyFireCircleVFX(new Vector3(Random.Range(-1f, 1f), Random.Range(1.0f, 1.5f), player.transform.localPosition.z + 1.5f));
+    }
+
+    public void ApplyFireCircleVFX(Vector3 position) {
         CreationElement element1 = new CreationElement();
         element1.type = CreationElement.Type.VFX;
         element1.effectName = CreationElement.EffectName.FireCircle;
-        element1.position = new Vector3(Random.Range(-1f, 1f), Random.Range(1.0f, 1.5f), player.transform.localPosition.z + 1.5f);
+        element1.position = position;
         element1.startTime = audioSource.time + 0.05f;
         element1.endTime = element1.startTime + 2f;
 
@@ -226,6 +359,30 @@ public class GameManagerScript : MonoBehaviour
         effectList.Add(element1);
     }
 
+    public void AppendBlueSkyboxEffect() {
+        CreationElement element1 = new CreationElement();
+        element1.type = CreationElement.Type.Skybox;
+        element1.effectName = CreationElement.EffectName.BlueSkybox;
+        element1.position = new Vector3(0, 0, 0);
+        element1.startTime = audioSource.time + 0.05f;
+        element1.endTime = element1.startTime + 1.5f;
+
+        timelineController.AddCreationElement(element1);
+        effectList.Add(element1);
+    }
+
+
+    public void AppendPinkSkyboxEffect() {
+        CreationElement element1 = new CreationElement();
+        element1.type = CreationElement.Type.Skybox;
+        element1.effectName = CreationElement.EffectName.PinkSkybox;
+        element1.position = new Vector3(0, 0, 0);
+        element1.startTime = audioSource.time + 0.05f;
+        element1.endTime = element1.startTime + 1.5f;
+
+        timelineController.AddCreationElement(element1);
+        effectList.Add(element1);
+    }
 
     public void ApplyReverb(){
         reverbFilter.enabled = true;
@@ -248,5 +405,70 @@ public class GameManagerScript : MonoBehaviour
 
     public void StopEcho(){
         echoFilter.enabled = false;
+    }
+
+    public void Reset(){
+        timelineController.ClearTimeline();
+        effectList = new List<CreationElement>();
+    }
+
+    public void SaveEffectList(){
+        string json;
+        for (int i=0; i<effectList.Count; i++) {
+            json = JsonUtility.ToJson(effectList[i]);
+            string path = GetFilePath("effectlist" + i.ToString() + ".txt");
+            FileStream fileStream = new FileStream(path, FileMode.Create);
+
+            using (StreamWriter writer = new StreamWriter(fileStream))
+            {
+                writer.Write(json);
+                Debug.Log(json);
+            }
+        }
+    }
+
+    public void ClearSave()
+    {
+        string[] files = Directory.GetFiles(Application.persistentDataPath);
+
+        for (int i=0; i<files.Length; i++) {
+            if (File.Exists(files[i])) {
+                File.Delete(files[i]);
+            }
+            else {
+                Debug.LogWarning("File not found");
+            }
+        }
+    }
+
+    public void LoadEffectList(){
+        string json;
+        string[] files = Directory.GetFiles(Application.persistentDataPath);
+        effectList = new List<CreationElement>();
+        timelineController.ClearTimeline();
+
+        for (int i=0; i<files.Length; i++) {
+            if (File.Exists(files[i])) {
+                using (StreamReader reader = new StreamReader(files[i]))
+                {
+                    json = reader.ReadToEnd();
+                    effectList.Add(new CreationElement());
+                    JsonUtility.FromJsonOverwrite(json, effectList[effectList.Count-1]);
+                    timelineController.AddCreationElement(effectList[effectList.Count-1]);                
+                }
+            }
+            else {
+                Debug.LogWarning("File not found");
+            }
+        }
+        
+        string path = GetFilePath("effectlist.txt");
+        
+    }
+    
+    private string GetFilePath(string fileName)
+    {
+        Debug.Log(Application.persistentDataPath);
+        return Application.persistentDataPath + "/" + fileName;
     }
 }

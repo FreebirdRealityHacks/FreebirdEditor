@@ -5,18 +5,9 @@ EditorBuildSettings:
   m_ObjectHideFlags: 0
   serializedVersion: 2
   m_Scenes:
-  - enabled: 0
-    path: Assets/Scenes/FreebirdEditorMain.unity
-    guid: 3e41b958d284749d1abd995b36f6f454
-  - enabled: 0
-    path: Assets/Scenes/DistanceGrabExamples 1.unity
-    guid: a7b14a1a13b834b5f9cccfa9384ab211
-  - enabled: 0
-    path: 
-    guid: 00000000000000000000000000000000
   - enabled: 1
-    path: Assets/Scenes/Merge_v2_wozniak.unity
-    guid: 919183604a88a0c4faf6113fdc5d355b
+    path: Assets/Scenes/Merge_v4_wozniak.unity
+    guid: a615cac2aaed63845ba20483f5eeae83
   m_configObjects:
     Unity.XR.Oculus.Settings: {fileID: 11400000, guid: d1a576d0e2d3b4c898f800b93c17cf9b, type: 2}
     com.unity.xr.management.loader_settings: {fileID: 11400000, guid: c4b01c6d5fd924d3ea644cc7c271b044, type: 2}

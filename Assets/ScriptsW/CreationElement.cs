@@ -2,11 +2,13 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
+[System.Serializable]
 public class CreationElement
 {
     public enum Type {
         VFX,
         SFX,
+        Skybox
     }
 
     public enum EffectName {
@@ -14,6 +16,9 @@ public class CreationElement
         FireCircle,
         Reverb,
         Echo,
+        BlueSkybox,
+        PinkSkybox,
+        NeutralSkybox,
     }
 
     public Type type;
