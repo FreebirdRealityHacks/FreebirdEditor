@@ -126,10 +126,10 @@ public class GameManagerScript : MonoBehaviour
 
         //Debug.Log("Seek " + seek);
 
-        if ( Mathf.Abs(scrubberUI.value) > 15) {
+        if ( Mathf.Abs(scrubberUI.value) > 10f) {
             float multiplier = scrubberUI.value > 0f ? 1 : -1;
-            float seekTime = audioSource.time + multiplier * 20f * Time.deltaTime;
-            if (0.1 < seekTime && seekTime < audioSource.clip.length - .7)
+            float seekTime = audioSource.time + multiplier * 2f * Time.deltaTime;
+            if (0.1 < seekTime && seekTime < audioSource.clip.length - 5f)
             {
                 Debug.Log("**** seek " + seekTime);
                 audioSource.time = seekTime;
@@ -139,7 +139,7 @@ public class GameManagerScript : MonoBehaviour
         if (!Mathf.Approximately(Input.GetAxis("Vertical"), 0)) {
             float seekTime = audioSource.time + Input.GetAxis("Vertical") * 20f * Time.deltaTime;
             Debug.Log("Keyboard Seek " + Input.GetAxis("Vertical") * 20f * Time.deltaTime + " Seek Time" + seekTime);
-            if (0.1 < seekTime && seekTime < audioSource.clip.length - 0.7) {
+            if (0.1 < seekTime && seekTime < audioSource.clip.length - 1f) {
                 Debug.Log("**** seek " + seekTime);
                 audioSource.time = seekTime;
             }
@@ -233,6 +233,7 @@ public class GameManagerScript : MonoBehaviour
     }
 
     public void Stop() {
+        audioSource.time = 0f;
         audioSource.Stop();
     }
 

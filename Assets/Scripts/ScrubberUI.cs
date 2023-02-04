@@ -24,9 +24,9 @@ namespace Oculus.Interaction
         [SerializeField]
         private Renderer debugObj;
 
-        public bool hasUpdate;
+        [SerializeField]
+        public TMP_Text text;
 
-        //public TMP_Text text;
         /*
         [SerializeField]
         private Renderer purpleDebug;
@@ -100,7 +100,6 @@ namespace Oculus.Interaction
             InteractableR.WhenChanged -= WhenFingerChanged;
             InteractableL.WhenChanged -= WhenFingerChanged;
             //}
-            hasUpdate = false;
         }
 
         private void WhenFingerChanged(FingerTipInteractableStateChangeArgs args) => _WhenFingerChanged(args);
@@ -137,13 +136,17 @@ namespace Oculus.Interaction
             {
                 debugObj.material.color = Color.red;
                 reticle.position = Vector3.zero;
-                hasUpdate = false;  
                 return;
             }
 
             // Reticle for Hover State
             reticle.position = new Vector3(fingerPos.x, fingerPos.y + 0.002f, fingerPos.z);
-            if (args.PreviousState == InteractableState.Normal
+            if (args.NewState == InteractableState.Normal && args.PreviousState != InteractableState.Normal)
+            {
+                _value = 0;
+                text.text = "value: " + Mathf.FloorToInt(_value);
+            }
+            else if (args.PreviousState == InteractableState.Normal
                 && (args.NewState == InteractableState.Select || args.NewState == InteractableState.Hover))
             {
                 Vector3 centerToFinger = fingerPos - currPos;
@@ -177,6 +180,7 @@ namespace Oculus.Interaction
                     total += _prevDeltas[i];
                 }
                 _value = total;
+                text.text = "value: " + Mathf.FloorToInt(_value);
                 Debug.Log("**** average : " + total + " current " + currentAngle);
 
                 //debugObj.transform.position = currPos + (transform.right * 0.1f);
@@ -204,7 +208,6 @@ namespace Oculus.Interaction
                 //    _debugString = "Value!: " + _value;
                 //    Quaternion quaternion = new Quaternion(0, 1 / _value, 0, 1);
                 //    indicator.transform.SetPositionAndRotation(indicator.transform.position, quaternion * indicator.transform.rotation);
-                //    hasUpdate = true;
                 //    return;
                 //}
 
@@ -257,8 +260,6 @@ namespace Oculus.Interaction
 
                 */
             }
-
-            hasUpdate = false;
         }
 
     }
