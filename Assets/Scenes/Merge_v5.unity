@@ -12492,7 +12492,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 998118159}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: dabf0486ff02b3f40b64e2e31edabe8e, type: 3}
   m_Name: 
@@ -19940,7 +19940,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1686991837}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: dabf0486ff02b3f40b64e2e31edabe8e, type: 3}
   m_Name: 
@@ -24976,7 +24976,7 @@ GameObject:
   - component: {fileID: 1351230469}
   - component: {fileID: 6609430560775506566}
   m_Layer: 0
-  m_Name: ScrubButton
+  m_Name: Scrubber
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -25222,13 +25222,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 354bc9a73ac20e349b17f538eda46f58, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  InteractableR: {fileID: 998118161}
-  InteractableL: {fileID: 1686991839}
   surfaceTransform: {fileID: 1459148036763632244}
   reticle: {fileID: 1444423429}
   indicator: {fileID: 1772714857}
   debugObj: {fileID: 1253850944}
   hasUpdate: 0
+  _leftHand: {fileID: 1699163430}
+  _rightHand: {fileID: 0}
 --- !u!114 &6609430561981559708
 MonoBehaviour:
   m_ObjectHideFlags: 0
