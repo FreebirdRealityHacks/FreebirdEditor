@@ -8,7 +8,7 @@ Material:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_Name: DistanceReticle
-  m_Shader: {fileID: 10101, guid: 0000000000000000e000000000000000, type: 0}
+  m_Shader: {fileID: 4800000, guid: a02a7d8c237544f1962732b55a9aebf1, type: 3}
   m_ValidKeywords: []
   m_InvalidKeywords: []
   m_LightmapFlags: 0
@@ -83,6 +83,7 @@ Material:
     - _ColorMask: 15
     - _ColorMode: 0
     - _Cull: 2
+    - _CullMode: 0
     - _Cutoff: 0.5
     - _DetailNormalMapScale: 1
     - _DistortionBlend: 0.5
@@ -92,12 +93,16 @@ Material:
     - _DstBlend: 0
     - _EmissionEnabled: 0
     - _EnableExternalAlpha: 0
+    - _FaceDilate: 0
     - _FlipbookMode: 0
     - _FresnelPower: 0.16
     - _GlossMapScale: 1
     - _Glossiness: 0.5
     - _GlossyReflections: 1
+    - _GradientScale: 5
     - _LightingEnabled: 0
+    - _MaskSoftnessX: 0
+    - _MaskSoftnessY: 0
     - _Metallic: 0
     - _Mode: 0
     - _OcclusionStrength: 1
@@ -106,11 +111,20 @@ Material:
     - _OutlineIntensity: 1
     - _OutlineOpacity: 1
     - _OutlinePinchRange: 0.15
+    - _OutlineSoftness: 0
     - _OutlineSphereHardness: 0.261
     - _OutlineWidth: 0.00452
     - _Parallax: 0.02
+    - _PerspectiveFilter: 0.875
     - _PinchIntensity: 0
     - _PinchRange: 0.03
+    - _ScaleRatioA: 1
+    - _ScaleRatioB: 1
+    - _ScaleRatioC: 1
+    - _ScaleX: 1
+    - _ScaleY: 1
+    - _ShaderFlags: 0
+    - _Sharpness: 0
     - _SmoothnessTextureChannel: 0
     - _SoftParticlesEnabled: 0
     - _SoftParticlesFarFadeDistance: 1
@@ -123,18 +137,30 @@ Material:
     - _StencilReadMask: 255
     - _StencilWriteMask: 255
     - _Strength: 0.2
+    - _TextureHeight: 512
+    - _TextureWidth: 512
     - _UVSec: 0
+    - _UnderlayDilate: 0
+    - _UnderlayOffsetX: 0
+    - _UnderlayOffsetY: 0
+    - _UnderlaySoftness: 0
     - _UseUIAlphaClip: 0
+    - _VertexOffsetX: 0
+    - _VertexOffsetY: 0
+    - _WeightBold: 0.5
+    - _WeightNormal: 0
     - _WristRange: 0.06
     - _WristScale: 1
     - _ZWrite: 1
     m_Colors:
     - _CameraFadeParams: {r: 0, g: Infinity, b: 0, a: 0}
+    - _ClipRect: {r: -32767, g: -32767, b: 32767, a: 32767}
     - _Color: {r: 1, g: 1, b: 1, a: 1}
     - _ColorAddSubDiff: {r: 0, g: 0, b: 0, a: 0}
     - _ColorBottom: {r: 0.1215686, g: 0.1254902, b: 0.1294117, a: 1}
     - _ColorTop: {r: 0.1960784, g: 0.2039215, b: 0.2117647, a: 1}
     - _EmissionColor: {r: 0, g: 0, b: 0, a: 1}
+    - _FaceColor: {r: 1, g: 1, b: 1, a: 1}
     - _FingerGlowColor: {r: 1, g: 1, b: 1, a: 1}
     - _Flip: {r: 1, g: 1, b: 1, a: 1}
     - _OutlineColor: {r: 0, g: 0.060156107, b: 1, a: 1}
@@ -143,5 +169,6 @@ Material:
     - _PinchPosition: {r: 0, g: 0, b: 0, a: 0}
     - _RendererColor: {r: 1, g: 1, b: 1, a: 1}
     - _SoftParticleFadeParams: {r: 0, g: 0, b: 0, a: 0}
+    - _UnderlayColor: {r: 0, g: 0, b: 0, a: 0.5}
     - _WristLocalOffset: {r: 0, g: 0, b: 0, a: 0}
   m_BuildTextureStacks: []
