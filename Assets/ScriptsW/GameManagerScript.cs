@@ -14,8 +14,6 @@ public class GameManagerScript : MonoBehaviour
     public GameObject player;
     public Oculus.Interaction.ScrubberUI scrubberUI;
 
-    private float previousScrubberValue;
-
     //public TextMeshProUGUI timeText;
     public TMP_Text timeText;
 
@@ -41,11 +39,7 @@ public class GameManagerScript : MonoBehaviour
     {
         StopReverb();
         StopEcho();
-
-        previousScrubberValue = scrubberUI.value;
     }
-
-
 
     void Update(){
         GameMode previousGameMode = gameMode;
@@ -117,30 +111,20 @@ public class GameManagerScript : MonoBehaviour
             }
         }
 
-        // seek
-        //float scrubberValueDelta = scrubberUI.value - previousScrubberValue;
-        //previousScrubberValue = scrubberUI.value;
-
-
-        
-
-        //Debug.Log("Seek " + seek);
-
-        if ( Mathf.Abs(scrubberUI.value) > 15) {
-            float multiplier = scrubberUI.value > 0f ? 1 : -1;
-            float seekTime = audioSource.time + multiplier * 20f * Time.deltaTime;
-            if (0.1 < seekTime && seekTime < audioSource.clip.length - .7)
+        // ScrubberUI.value goes from -1 to 1. Also goes from 0-1 in ~25 frames.
+        if (!Mathf.Approximately(scrubberUI.value, 0))
+        {
+            float seekTime = audioSource.time + scrubberUI.value * 20f * Time.deltaTime;
+            if (0.1 < seekTime && seekTime < audioSource.clip.length - 1f)
             {
-                Debug.Log("**** seek " + seekTime);
                 audioSource.time = seekTime;
             }
         }
 
+        // When up arrow is held down, `Input.GetAxis("Vertical")` goes from 0-1 in ~25 frames.
         if (!Mathf.Approximately(Input.GetAxis("Vertical"), 0)) {
             float seekTime = audioSource.time + Input.GetAxis("Vertical") * 20f * Time.deltaTime;
-            Debug.Log("Keyboard Seek " + Input.GetAxis("Vertical") * 20f * Time.deltaTime + " Seek Time" + seekTime);
-            if (0.1 < seekTime && seekTime < audioSource.clip.length - 0.7) {
-                Debug.Log("**** seek " + seekTime);
+            if (0.1 < seekTime && seekTime < audioSource.clip.length - 1f) {
                 audioSource.time = seekTime;
             }
         }
@@ -233,6 +217,7 @@ public class GameManagerScript : MonoBehaviour
     }
 
     public void Stop() {
+        audioSource.time = 0f;
         audioSource.Stop();
     }
 
