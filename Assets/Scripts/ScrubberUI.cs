@@ -70,7 +70,7 @@ namespace Oculus.Interaction
                 {
                     _value += _value > 0 ? -VALUE_STEP/2 : VALUE_STEP/2;
                 }
-                text.text = "scrubber value: " + Mathf.FloorToInt(_value * 100) / 100f;
+                //text.text = "scrubber value: " + Mathf.FloorToInt(_value * 100) / 100f;
             }
         }
 
@@ -118,7 +118,7 @@ namespace Oculus.Interaction
             if (args.NewState == InteractableState.Normal && args.PreviousState != InteractableState.Normal)
             {
                 _value = 0;
-                text.text = "scrubber value: " + Mathf.FloorToInt(_value * 100) / 100f;
+                //text.text = "scrubber value: " + Mathf.FloorToInt(_value * 100) / 100f;
             }
             else if (args.PreviousState == InteractableState.Normal
                 && (args.NewState == InteractableState.Select || args.NewState == InteractableState.Hover))
@@ -163,7 +163,7 @@ namespace Oculus.Interaction
                     _value += avgVal > 0 ? VALUE_STEP : -VALUE_STEP;
                     _value = Mathf.Clamp(_value, -1, 1);
                 }
-                text.text = "scrubber value: " + Mathf.FloorToInt(_value * 100) / 100f;
+                //text.text = "scrubber value: " + Mathf.FloorToInt(_value * 100) / 100f;
 
                 _prevAngle = currentAngle;
                 _prevDeltas[_prevDeltasIndex] = delta;
