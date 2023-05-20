@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -59,6 +60,11 @@ public class TimelineController : MonoBehaviour
 
     System.Random random = new System.Random(); 
 
+    private Color GetColorFromCreationElement(CreationElement element) {
+        int channelIndex = GetChannelIndex(element);
+        return COLORS[random.Next(0, COLORS.Length)];
+    }
+
     // Start is called before the first frame update
     void Start()
     {
@@ -69,20 +75,18 @@ public class TimelineController : MonoBehaviour
     }
 
     public void AddCreationElement(CreationElement element) {
-        if (element.type == CreationElement.Type.SFX) {
-            Channel sfxChannel = _channels[0];
-            sfxChannel.creationElementsToAdd.Add(element);
+        int channelIndex = GetChannelIndex(element);
+        _channels[channelIndex].creationElementsToAdd.Add(element);
+    }
+
+    private int GetChannelIndex(CreationElement element) {
+        for (int i = 0; i < _channels.Count; i += 1) {
+            if (_channels[i].type == element.type) {
+                return i;
+            }
         }
 
-        if (element.type == CreationElement.Type.VFX) {
-            Channel vfxChannel = _channels[1];
-            vfxChannel.creationElementsToAdd.Add(element);
-        }
-
-        if (element.type == CreationElement.Type.Skybox) {
-            Channel skyboxChannel = _channels[2];
-            skyboxChannel.creationElementsToAdd.Add(element);
-        }
+        throw new Exception("GetChannelIndex: Got an unsupported CreationElement");
     }
 
     // Update is called once per frame
@@ -200,7 +204,7 @@ public class TimelineController : MonoBehaviour
                 CreationElement creationElement = channel.creationElementsToAdd[j];
 
                 GameObject creationElementBlock = Instantiate(trackPrefab);
-                Color randomColor = COLORS[random.Next(0, COLORS.Length)];
+                Color randomColor = GetColorFromCreationElement(creationElement);
 
                 creationElementBlock.GetComponent<Renderer>().material.color = randomColor;
                 creationElementBlock.transform.SetParent(timeline.transform);
@@ -349,7 +353,7 @@ public class TimelineController : MonoBehaviour
         Debug.Log(creationElement.type);
 
         GameObject creationElementBlock = Instantiate(trackPrefab);
-        Color randomColor = COLORS[random.Next(0, COLORS.Length)];
+        Color randomColor = GetColorFromCreationElement(creationElement);
 
         creationElementBlock.GetComponent<Renderer>().material.color = randomColor;
         creationElementBlock.transform.localPosition = creationElement.position;
