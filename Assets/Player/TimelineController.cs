@@ -46,23 +46,39 @@ public class TimelineController : MonoBehaviour
 
     private int _selectedIndex = 0;
 
-    private static Color[] COLORS = {
-        Color.blue,
-        Color.clear,
-        Color.cyan,
-        Color.gray,
-        Color.green,
-        Color.grey,
-        Color.magenta,
-        Color.red,
-        Color.yellow
+    private static Color[][] COLORS = {
+        // Yellow: First Channel
+        new Color[]{
+            rgba(250, 225, 125, 1),
+            rgba(234, 197, 79, 1),
+            rgba(212, 167, 44, 1)
+        },
+
+        // Blue: Second Channel
+        new Color[]{
+            rgba(182, 227, 255, 1),
+            rgba(128, 204, 255, 1),
+            rgba(84, 174, 255, 1)
+        },
+
+        // Pink: Third Channel
+        new Color[]{
+            rgba(255, 211, 235, 1),
+            rgba(255, 173, 218, 1),
+            rgba(255, 128, 200, 1)
+        }
     };
+
+    private static Color rgba(int r, int g, int b, float a) {
+        return new Color(r / 255f, g / 255f, b / 255f, a);
+    }
 
     System.Random random = new System.Random(); 
 
     private Color GetColorFromCreationElement(CreationElement element) {
         int channelIndex = GetChannelIndex(element);
-        return COLORS[random.Next(0, COLORS.Length)];
+        Color[] colors = COLORS[channelIndex];
+        return colors[random.Next(0, colors.Length)];
     }
 
     // Start is called before the first frame update
