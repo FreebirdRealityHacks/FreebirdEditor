@@ -111,11 +111,13 @@ public class GameManagerScript : MonoBehaviour
             }
         }
 
+        float almostAudioEnd = audioSource.clip.length - 0.5f;
+
         // ScrubberUI.value goes from -1 to 1. Also goes from 0-1 in ~25 frames.
         if (!Mathf.Approximately(scrubberUI.value, 0))
         {
             float seekTime = audioSource.time + scrubberUI.value * 20f * Time.deltaTime;
-            if (0.1 < seekTime && seekTime < audioSource.clip.length - 1f)
+            if (0.1 < seekTime && seekTime < almostAudioEnd)
             {
                 audioSource.time = seekTime;
             }
@@ -124,7 +126,7 @@ public class GameManagerScript : MonoBehaviour
         // When up arrow is held down, `Input.GetAxis("Vertical")` goes from 0-1 in ~25 frames.
         if (!Mathf.Approximately(Input.GetAxis("Vertical"), 0)) {
             float seekTime = audioSource.time + Input.GetAxis("Vertical") * 20f * Time.deltaTime;
-            if (0.1 < seekTime && seekTime < audioSource.clip.length - 1f) {
+            if (0.1 < seekTime && seekTime < almostAudioEnd) {
                 audioSource.time = seekTime;
             }
         }
@@ -179,6 +181,19 @@ public class GameManagerScript : MonoBehaviour
                 StopEcho();
             }
         }
+
+
+        // HACK
+        // Manually stop the game when audioSource is close enough to the end.
+        // This fixes lots of problems.
+        //
+        // One problem:
+        // For some reason, after the audio source finishes playing, the timeline resets to 0. 
+        // But, pressing play starts the game from "a little bit before the end"
+        if (audioSource.time >= almostAudioEnd) {
+            Stop();
+        }
+
 
     }
 
