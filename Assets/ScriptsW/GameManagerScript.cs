@@ -408,6 +408,7 @@ public class GameManagerScript : MonoBehaviour
     }
 
     public void Reset(){
+        Debug.Log("Hello World");
         timelineController.ClearTimeline();
         effectList = new List<CreationElement>();
     }
