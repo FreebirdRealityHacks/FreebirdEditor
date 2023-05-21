@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -45,19 +46,40 @@ public class TimelineController : MonoBehaviour
 
     private int _selectedIndex = 0;
 
-    private static Color[] COLORS = {
-        Color.blue,
-        Color.clear,
-        Color.cyan,
-        Color.gray,
-        Color.green,
-        Color.grey,
-        Color.magenta,
-        Color.red,
-        Color.yellow
+    private static Color[][] COLORS = {
+        // Yellow: First Channel
+        new Color[]{
+            rgba(250, 225, 125, 1),
+            rgba(234, 197, 79, 1),
+            rgba(212, 167, 44, 1)
+        },
+
+        // Blue: Second Channel
+        new Color[]{
+            rgba(182, 227, 255, 1),
+            rgba(128, 204, 255, 1),
+            rgba(84, 174, 255, 1)
+        },
+
+        // Pink: Third Channel
+        new Color[]{
+            rgba(255, 211, 235, 1),
+            rgba(255, 173, 218, 1),
+            rgba(255, 128, 200, 1)
+        }
     };
 
+    private static Color rgba(int r, int g, int b, float a) {
+        return new Color(r / 255f, g / 255f, b / 255f, a);
+    }
+
     System.Random random = new System.Random(); 
+
+    private Color GetColorFromCreationElement(CreationElement element) {
+        int channelIndex = GetChannelIndex(element);
+        Color[] colors = COLORS[channelIndex];
+        return colors[random.Next(0, colors.Length)];
+    }
 
     // Start is called before the first frame update
     void Start()
@@ -69,20 +91,18 @@ public class TimelineController : MonoBehaviour
     }
 
     public void AddCreationElement(CreationElement element) {
-        if (element.type == CreationElement.Type.SFX) {
-            Channel sfxChannel = _channels[0];
-            sfxChannel.creationElementsToAdd.Add(element);
+        int channelIndex = GetChannelIndex(element);
+        _channels[channelIndex].creationElementsToAdd.Add(element);
+    }
+
+    private int GetChannelIndex(CreationElement element) {
+        for (int i = 0; i < _channels.Count; i += 1) {
+            if (_channels[i].type == element.type) {
+                return i;
+            }
         }
 
-        if (element.type == CreationElement.Type.VFX) {
-            Channel vfxChannel = _channels[1];
-            vfxChannel.creationElementsToAdd.Add(element);
-        }
-
-        if (element.type == CreationElement.Type.Skybox) {
-            Channel skyboxChannel = _channels[2];
-            skyboxChannel.creationElementsToAdd.Add(element);
-        }
+        throw new Exception("GetChannelIndex: Got an unsupported CreationElement");
     }
 
     // Update is called once per frame
@@ -200,7 +220,7 @@ public class TimelineController : MonoBehaviour
                 CreationElement creationElement = channel.creationElementsToAdd[j];
 
                 GameObject creationElementBlock = Instantiate(trackPrefab);
-                Color randomColor = COLORS[random.Next(0, COLORS.Length)];
+                Color randomColor = GetColorFromCreationElement(creationElement);
 
                 creationElementBlock.GetComponent<Renderer>().material.color = randomColor;
                 creationElementBlock.transform.SetParent(timeline.transform);
@@ -349,7 +369,7 @@ public class TimelineController : MonoBehaviour
         Debug.Log(creationElement.type);
 
         GameObject creationElementBlock = Instantiate(trackPrefab);
-        Color randomColor = COLORS[random.Next(0, COLORS.Length)];
+        Color randomColor = GetColorFromCreationElement(creationElement);
 
         creationElementBlock.GetComponent<Renderer>().material.color = randomColor;
         creationElementBlock.transform.localPosition = creationElement.position;
