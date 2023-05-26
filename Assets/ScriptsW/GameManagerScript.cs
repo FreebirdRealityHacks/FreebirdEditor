@@ -47,11 +47,11 @@ public class GameManagerScript : MonoBehaviour
         //readinput when press a , create object with current time and position at cursor
         if (gameMode == GameMode.Edit) {
             if (Input.GetKeyDown("v")) {
-                ApplyRandomFireworkVFX();
+                AppendRandomFireworkVFX();
             }
 
             if (Input.GetKeyDown("b")) {
-                ApplyRandomFireCircleVFX();
+                AppendRandomFireCircleVFX();
             }
 
             if (Input.GetKeyDown("r")) {
@@ -207,9 +207,9 @@ public class GameManagerScript : MonoBehaviour
         Vector3 effectPosition = (lastClappedPos - playerPos) * scale + playerPos;
         effectPosition = new Vector3(effectPosition.x, lastClappedPos.y, effectPosition.z);
         if (Random.Range(0, 2) == 0) {
-            ApplyFireCircleVFX(effectPosition);
+            AppendFireCircleVFX(effectPosition);
         } else {
-            ApplyFireworkVFX(effectPosition);
+            AppendFireworkVFX(effectPosition);
         }
     }
 
@@ -219,6 +219,39 @@ public class GameManagerScript : MonoBehaviour
         return $"{minutes.ToString().PadLeft(2,'0')}:{secondsLeft.ToString().PadLeft(2,'0')}";
     }
 
+    private bool IsReverbEffectEnabled() {
+        for (int i = 0; i < effectList.Count; i += 1) {
+            CreationElement effect = effectList[i];
+
+            if (!(effect.startTime <= audioSource.time && audioSource.time <= effect.endTime)) {
+                continue;
+            }
+
+            if (effect.type == CreationElement.Type.SFX && effect.effectName == CreationElement.EffectName.Reverb) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private bool IsEchoEffectEnabled() {
+        for (int i = 0; i < effectList.Count; i += 1) {
+            CreationElement effect = effectList[i];
+
+            if (!(effect.startTime <= audioSource.time && audioSource.time <= effect.endTime)) {
+                continue;
+            }
+
+            if (effect.type == CreationElement.Type.SFX && effect.effectName == CreationElement.EffectName.Echo) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * API for HUD
+     */
     public void Play() {
         if (!audioSource.isPlaying) {
             audioSource.Play();
@@ -244,97 +277,9 @@ public class GameManagerScript : MonoBehaviour
         gameMode = GameMode.Edit;
     }
 
-    void UpdateSkyboxColor(Color color) {
-        if (RenderSettings.skybox.HasProperty("_Tint"))
-            RenderSettings.skybox.SetColor("_Tint", color);
-        else if (RenderSettings.skybox.HasProperty("_SkyTint"))
-            RenderSettings.skybox.SetColor("_SkyTint", color);
-    }
-
-    bool IsReverbEffectEnabled() {
-        for (int i = 0; i < effectList.Count; i += 1) {
-            CreationElement effect = effectList[i];
-
-            if (!(effect.startTime <= audioSource.time && audioSource.time <= effect.endTime)) {
-                continue;
-            }
-
-            if (effect.type == CreationElement.Type.SFX && effect.effectName == CreationElement.EffectName.Reverb) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    bool IsEchoEffectEnabled() {
-        for (int i = 0; i < effectList.Count; i += 1) {
-            CreationElement effect = effectList[i];
-
-            if (!(effect.startTime <= audioSource.time && audioSource.time <= effect.endTime)) {
-                continue;
-            }
-
-            if (effect.type == CreationElement.Type.SFX && effect.effectName == CreationElement.EffectName.Echo) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    IEnumerator StartThenStopVFX(CreationElement effect) {
-        effectsPlaying.Add(effect);
-
-        if (effect.effectName == CreationElement.EffectName.Firework) {
-            GameObject vfx = Instantiate(fireworkPrefab, effect.position, Quaternion.identity);
-            //vfx.GetComponent<ParticleSystem>().startColor = new Color(255, 0, 0, 1);
-            float gap = 0.1f;
-            yield return new WaitForSeconds(effect.endTime - effect.startTime + gap);
-            Destroy(vfx);
-        }
-
-        if (effect.effectName == CreationElement.EffectName.FireCircle) {
-            GameObject vfx = Instantiate(fireCirclePrefab, effect.position, Quaternion.identity);
-            //vfx.GetComponent<ParticleSystem>().startColor = new Color(255, 0, 0, 1);
-            float gap = 0.1f;
-            yield return new WaitForSeconds(effect.endTime - effect.startTime + gap);
-            Destroy(vfx);
-        }
-        
-        effectsPlaying.Remove(effect);
-    }
-
-    public void ApplyRandomFireworkVFX() {
-        ApplyFireworkVFX(new Vector3(Random.Range(-1f, 1f), Random.Range(1.0f, 1.5f), player.transform.localPosition.z + 1.5f));
-    }
-
-    public void ApplyFireworkVFX(Vector3 position) {
-        CreationElement element1 = new CreationElement();
-        element1.type = CreationElement.Type.VFX;
-        element1.effectName = CreationElement.EffectName.Firework;
-        element1.position = position;
-        element1.startTime = audioSource.time + 0.05f;
-        element1.endTime = element1.startTime + 2f;
-
-        timelineController.AddCreationElement(element1);
-        effectList.Add(element1);
-    }
-
-    public void ApplyRandomFireCircleVFX() {
-        ApplyFireCircleVFX(new Vector3(Random.Range(-1f, 1f), Random.Range(1.0f, 1.5f), player.transform.localPosition.z + 1.5f));
-    }
-
-    public void ApplyFireCircleVFX(Vector3 position) {
-        CreationElement element1 = new CreationElement();
-        element1.type = CreationElement.Type.VFX;
-        element1.effectName = CreationElement.EffectName.FireCircle;
-        element1.position = position;
-        element1.startTime = audioSource.time + 0.05f;
-        element1.endTime = element1.startTime + 2f;
-
-        timelineController.AddCreationElement(element1);
-        effectList.Add(element1);
-    }
-
+    /**
+     * Adding effects to the game!
+     */
     public void AppendEchoEffect() {
         CreationElement element1 = new CreationElement();
         element1.type = CreationElement.Type.SFX;
@@ -384,31 +329,91 @@ public class GameManagerScript : MonoBehaviour
         effectList.Add(element1);
     }
 
-    public void ApplyReverb(){
-        reverbFilter.enabled = true;
-
-        /*
-        filter.decayTime = 4f;
-        filter.room = -500;
-        filter.roomHF = -500;
-        filter.reverbLevel = -500;
-        */
+    public void AppendRandomFireworkVFX() {
+        AppendFireworkVFX(new Vector3(Random.Range(-1f, 1f), Random.Range(1.0f, 1.5f), player.transform.localPosition.z + 1.5f));
     }
 
-    public void StopReverb(){
+    private void AppendFireworkVFX(Vector3 position) {
+        CreationElement element1 = new CreationElement();
+        element1.type = CreationElement.Type.VFX;
+        element1.effectName = CreationElement.EffectName.Firework;
+        element1.position = position;
+        element1.startTime = audioSource.time + 0.05f;
+        element1.endTime = element1.startTime + 2f;
+
+        timelineController.AddCreationElement(element1);
+        effectList.Add(element1);
+    }
+
+    public void AppendRandomFireCircleVFX() {
+        AppendFireCircleVFX(new Vector3(Random.Range(-1f, 1f), Random.Range(1.0f, 1.5f), player.transform.localPosition.z + 1.5f));
+    }
+
+    private void AppendFireCircleVFX(Vector3 position) {
+        CreationElement element1 = new CreationElement();
+        element1.type = CreationElement.Type.VFX;
+        element1.effectName = CreationElement.EffectName.FireCircle;
+        element1.position = position;
+        element1.startTime = audioSource.time + 0.05f;
+        element1.endTime = element1.startTime + 2f;
+
+        timelineController.AddCreationElement(element1);
+        effectList.Add(element1);
+    }
+
+    /**
+     * Playing effects
+     */
+    private IEnumerator StartThenStopVFX(CreationElement effect) {
+        effectsPlaying.Add(effect);
+
+        if (effect.effectName == CreationElement.EffectName.Firework) {
+            GameObject vfx = Instantiate(fireworkPrefab, effect.position, Quaternion.identity);
+            //vfx.GetComponent<ParticleSystem>().startColor = new Color(255, 0, 0, 1);
+            float gap = 0.1f;
+            yield return new WaitForSeconds(effect.endTime - effect.startTime + gap);
+            Destroy(vfx);
+        }
+
+        if (effect.effectName == CreationElement.EffectName.FireCircle) {
+            GameObject vfx = Instantiate(fireCirclePrefab, effect.position, Quaternion.identity);
+            //vfx.GetComponent<ParticleSystem>().startColor = new Color(255, 0, 0, 1);
+            float gap = 0.1f;
+            yield return new WaitForSeconds(effect.endTime - effect.startTime + gap);
+            Destroy(vfx);
+        }
+        
+        effectsPlaying.Remove(effect);
+    }
+
+    private void UpdateSkyboxColor(Color color) {
+        if (RenderSettings.skybox.HasProperty("_Tint"))
+            RenderSettings.skybox.SetColor("_Tint", color);
+        else if (RenderSettings.skybox.HasProperty("_SkyTint"))
+            RenderSettings.skybox.SetColor("_SkyTint", color);
+    }
+    
+    private void ApplyReverb(){
+        reverbFilter.enabled = true;
+    }
+
+    private void StopReverb(){
         reverbFilter.enabled = false;
     }
 
-    public void ApplyEcho(){
+    private void ApplyEcho(){
         echoFilter.enabled = true;
     }
 
-    public void StopEcho(){
+    private void StopEcho(){
         echoFilter.enabled = false;
     }
 
+    /**
+     * Save/Reset
+     */
+
     public void Reset(){
-        Debug.Log("Hello World");
         timelineController.ClearTimeline();
         effectList = new List<CreationElement>();
     }
