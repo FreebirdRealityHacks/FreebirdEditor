@@ -341,21 +341,14 @@ public class TimelineController : MonoBehaviour
     public void EnterPreviewMode() {
         timeline.SetActive(false);
         timelineCursor.SetActive(false);
-        //timelineLabelCanvas.SetActive(false);
-
     }
 
     public void ExitPreviewMode() {
         timeline.SetActive(true);
         timelineCursor.SetActive(true);
-        //timelineLabelCanvas.SetActive(false);
-
     }
     
     public void ClearTimeline() {
-        // this function clears blocks
-        // to clear effects, in GameManagerScript:
-        // effectList = new List<CreationElement>();
         for (int i=0; i<_channels.Count; i++) {
             for (int j=0; j<_channels[i].creationElementBlocks.Count; j++) {
                 if (_channels[i].creationElementBlocks != null) {
