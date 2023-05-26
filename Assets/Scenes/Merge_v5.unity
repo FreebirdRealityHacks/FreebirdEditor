@@ -4254,7 +4254,7 @@ AudioSource:
   m_Enabled: 1
   serializedVersion: 4
   OutputAudioMixerGroup: {fileID: 0}
-  m_audioClip: {fileID: 8300000, guid: cc6849d28e3a74e73b5aedb9949825da, type: 3}
+  m_audioClip: {fileID: 8300000, guid: bedd8c2b90bfeeb449b764a3ed21efa6, type: 3}
   m_PlayOnAwake: 0
   m_Volume: 1
   m_Pitch: 1
@@ -11719,7 +11719,7 @@ MonoBehaviour:
       m_Calls:
       - m_Target: {fileID: 445350585}
         m_TargetAssemblyTypeName: GameManagerScript, Assembly-CSharp
-        m_MethodName: ApplyRandomFireCircleVFX
+        m_MethodName: AppendRandomFireCircleVFX
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -14530,7 +14530,7 @@ MonoBehaviour:
       m_Calls:
       - m_Target: {fileID: 445350585}
         m_TargetAssemblyTypeName: GameManagerScript, Assembly-CSharp
-        m_MethodName: ApplyRandomFireworkVFX
+        m_MethodName: AppendRandomFireworkVFX
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -23081,7 +23081,7 @@ MonoBehaviour:
       m_Calls:
       - m_Target: {fileID: 445350585}
         m_TargetAssemblyTypeName: GameManagerScript, Assembly-CSharp
-        m_MethodName: ApplyRandomFireCircleVFX
+        m_MethodName: AppendRandomFireCircleVFX
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
