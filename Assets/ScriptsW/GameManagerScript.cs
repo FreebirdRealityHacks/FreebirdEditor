@@ -24,7 +24,6 @@ public class GameManagerScript : MonoBehaviour
     // TODO: Change to Edit
     GameMode gameMode = GameMode.Edit;
 
-
     // Visual Effects)
     public GameObject fireworkPrefab;
     public GameObject fireCirclePrefab;
@@ -33,31 +32,21 @@ public class GameManagerScript : MonoBehaviour
     public AudioReverbFilter reverbFilter;
     public AudioEchoFilter echoFilter;
 
-    public List<AudioClip> audioClips;
-    private Dictionary<int, List<CreationElement>> effectListMap = new Dictionary<int, List<CreationElement>>();
-
-    // Use the first song
-    private int audioClipIndex = 0;
+    private List<CreationElement> effectList = new List<CreationElement>();
 
     // Start is called before the first frame update
     void Start()
     {
         StopReverb();
         StopEcho();
-
-        audioSource.clip = audioClips[audioClipIndex];
-        Stop();
-        for (int i = 0; i < audioClips.Count; i += 1) {
-            effectListMap[i] = new List<CreationElement>();
-        }
     }
 
     private List<CreationElement> GetEffectList() {
-        return effectListMap[audioClipIndex];
+        return effectList;
     }
 
-    private void SetEffectList(List<CreationElement> effectList) {
-        effectListMap[audioClipIndex] = effectList;
+    private void SetEffectList(List<CreationElement> otherEffectList) {
+        effectList = otherEffectList;
     }
 
     void Update(){
