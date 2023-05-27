@@ -348,44 +348,4 @@ public class TimelineController : MonoBehaviour
             }
         }
     }
-
-    public void LoadCreationElementBlock(CreationElement creationElement) {
-        Debug.Log(creationElement.type);
-
-        GameObject creationElementBlock = Instantiate(trackPrefab);
-        Color randomColor = GetColorFromCreationElement(creationElement);
-
-        creationElementBlock.GetComponent<Renderer>().material.color = randomColor;
-        creationElementBlock.transform.localPosition = creationElement.position;
-    }
-
-    public void CompleteResetTimeline() {
-        Destroy(_waveformTrackGameObject);
-        _waveformTrackGameObject = null;
-
-        foreach (var channel in _channels) {
-            Destroy(channel.trackBlock);
-        }
-
-        foreach (var line in _channelTrackLineGameObjects) {
-           Destroy(line);
-        }
-        _channelTrackLineGameObjects.Clear();
-        _channelTrackLineGameObjects = null;
-
-        foreach(var labelGameObject in _timelineLabelGameObjects) {
-            Destroy(labelGameObject);
-        }
-        _timelineLabelGameObjects.Clear();
-        _timelineLabelGameObjects = null;
-
-        foreach (var channel in _channels) {
-            channel.creationElements.Clear();
-            foreach (var creationElementBlock in channel.creationElementBlocks) {
-                Destroy(creationElementBlock);
-            }
-            channel.creationElementBlocks.Clear();
-        }
-
-    }
 }

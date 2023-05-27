@@ -35,7 +35,8 @@ public class GameManagerScript : MonoBehaviour
 
     public List<AudioClip> audioClips;
     private Dictionary<int, List<CreationElement>> effectListMap = new Dictionary<int, List<CreationElement>>();
-    private int nextAudioClipIndex = 0;
+
+    // Use the first song
     private int audioClipIndex = 0;
 
     // Start is called before the first frame update
@@ -90,24 +91,6 @@ public class GameManagerScript : MonoBehaviour
 
             if (Input.GetKeyDown("c")) {
                 Reset();
-            }
-
-            if (Input.GetKeyDown("n")) {
-                GoToNextSong();
-            }
-            
-        }
-
-        // Change songs, if necessary
-        if (nextAudioClipIndex != audioClipIndex) {
-            audioClipIndex = nextAudioClipIndex;
-            audioSource.clip = audioClips[audioClipIndex];
-            timelineController.CompleteResetTimeline();
-
-            Stop();
-
-            foreach (var creationElement in GetEffectList()) {
-                timelineController.AddCreationElement(creationElement);
             }
         }
 
@@ -220,10 +203,6 @@ public class GameManagerScript : MonoBehaviour
         if (audioSource.time >= almostAudioEnd) {
             Stop();
         }
-    }
-
-    public void GoToNextSong() {
-        nextAudioClipIndex = (audioClipIndex + 1) % audioClips.Count;
     }
 
     public void Clapped() {
