@@ -8,7 +8,6 @@ public class GameManagerScript : MonoBehaviour
 {
     public AudioSource audioSource;
     public TimelineController timelineController;
-    public List<CreationElement> effectList = new List<CreationElement>();
     public HashSet<CreationElement> effectsPlaying = new HashSet<CreationElement>();
     public Material skyboxMaterial;
     public GameObject player;
@@ -26,7 +25,7 @@ public class GameManagerScript : MonoBehaviour
     GameMode gameMode = GameMode.Edit;
 
 
-    // Visual Effects
+    // Visual Effects)
     public GameObject fireworkPrefab;
     public GameObject fireCirclePrefab;
 
@@ -34,11 +33,30 @@ public class GameManagerScript : MonoBehaviour
     public AudioReverbFilter reverbFilter;
     public AudioEchoFilter echoFilter;
 
+    public List<AudioClip> audioClips;
+    private Dictionary<int, List<CreationElement>> effectListMap = new Dictionary<int, List<CreationElement>>();
+    private int nextAudioClipIndex = 0;
+    private int audioClipIndex = 0;
+
     // Start is called before the first frame update
     void Start()
     {
         StopReverb();
         StopEcho();
+
+        audioSource.clip = audioClips[audioClipIndex];
+        Stop();
+        for (int i = 0; i < audioClips.Count; i += 1) {
+            effectListMap[i] = new List<CreationElement>();
+        }
+    }
+
+    private List<CreationElement> GetEffectList() {
+        return effectListMap[audioClipIndex];
+    }
+
+    private void SetEffectList(List<CreationElement> effectList) {
+        effectListMap[audioClipIndex] = effectList;
     }
 
     void Update(){
@@ -70,18 +88,27 @@ public class GameManagerScript : MonoBehaviour
                 AppendPinkSkyboxEffect();
             }
 
-            if (Input.GetKeyDown("j")) {
-                SaveEffectList();
-            }
-
-            if (Input.GetKeyDown("l")) {
-                LoadEffectList();
-            }
-
             if (Input.GetKeyDown("c")) {
                 Reset();
             }
+
+            if (Input.GetKeyDown("n")) {
+                GoToNextSong();
+            }
             
+        }
+
+        // Change songs, if necessary
+        if (nextAudioClipIndex != audioClipIndex) {
+            audioClipIndex = nextAudioClipIndex;
+            audioSource.clip = audioClips[audioClipIndex];
+            timelineController.CompleteResetTimeline();
+
+            Stop();
+
+            foreach (var creationElement in GetEffectList()) {
+                timelineController.AddCreationElement(creationElement);
+            }
         }
 
         bool enteredPreviewMode = previousGameMode != GameMode.Preview && gameMode == GameMode.Preview;
@@ -133,8 +160,8 @@ public class GameManagerScript : MonoBehaviour
 
         if (audioSource.isPlaying) {
             // Play VFX
-            for (int i = 0; i < effectList.Count; i += 1) {
-                CreationElement effect = effectList[i];
+            for (int i = 0; i < GetEffectList().Count; i += 1) {
+                CreationElement effect = GetEffectList()[i];
                 if (effect.startTime <= audioSource.time && audioSource.time <= effect.endTime) {
                     if (effect.type == CreationElement.Type.VFX && !effectsPlaying.Contains(effect)) {
                         StartCoroutine(StartThenStopVFX(effect));
@@ -144,8 +171,8 @@ public class GameManagerScript : MonoBehaviour
 
             CreationElement.EffectName skyboxType = CreationElement.EffectName.NeutralSkybox;
 
-            for (int i = 0; i < effectList.Count; i += 1) {
-                CreationElement effect = effectList[i];
+            for (int i = 0; i < GetEffectList().Count; i += 1) {
+                CreationElement effect = GetEffectList()[i];
                 if (effect.startTime <= audioSource.time && audioSource.time <= effect.endTime) {
                     if (effect.type == CreationElement.Type.Skybox) {
                         skyboxType = effect.effectName;
@@ -193,8 +220,10 @@ public class GameManagerScript : MonoBehaviour
         if (audioSource.time >= almostAudioEnd) {
             Stop();
         }
+    }
 
-
+    public void GoToNextSong() {
+        nextAudioClipIndex = (audioClipIndex + 1) % audioClips.Count;
     }
 
     public void Clapped() {
@@ -220,8 +249,8 @@ public class GameManagerScript : MonoBehaviour
     }
 
     private bool IsReverbEffectEnabled() {
-        for (int i = 0; i < effectList.Count; i += 1) {
-            CreationElement effect = effectList[i];
+        for (int i = 0; i < GetEffectList().Count; i += 1) {
+            CreationElement effect = GetEffectList()[i];
 
             if (!(effect.startTime <= audioSource.time && audioSource.time <= effect.endTime)) {
                 continue;
@@ -235,8 +264,8 @@ public class GameManagerScript : MonoBehaviour
     }
 
     private bool IsEchoEffectEnabled() {
-        for (int i = 0; i < effectList.Count; i += 1) {
-            CreationElement effect = effectList[i];
+        for (int i = 0; i < GetEffectList().Count; i += 1) {
+            CreationElement effect = GetEffectList()[i];
 
             if (!(effect.startTime <= audioSource.time && audioSource.time <= effect.endTime)) {
                 continue;
@@ -289,7 +318,7 @@ public class GameManagerScript : MonoBehaviour
         element1.endTime = element1.startTime + 1.5f;
 
         timelineController.AddCreationElement(element1);
-        effectList.Add(element1);
+        GetEffectList().Add(element1);
     }
 
     public void AppendReverbEffect() {
@@ -301,7 +330,7 @@ public class GameManagerScript : MonoBehaviour
         element1.endTime = element1.startTime + 1.5f;
 
         timelineController.AddCreationElement(element1);
-        effectList.Add(element1);
+        GetEffectList().Add(element1);
     }
 
     public void AppendBlueSkyboxEffect() {
@@ -313,7 +342,7 @@ public class GameManagerScript : MonoBehaviour
         element1.endTime = element1.startTime + 1.5f;
 
         timelineController.AddCreationElement(element1);
-        effectList.Add(element1);
+        GetEffectList().Add(element1);
     }
 
 
@@ -326,7 +355,7 @@ public class GameManagerScript : MonoBehaviour
         element1.endTime = element1.startTime + 1.5f;
 
         timelineController.AddCreationElement(element1);
-        effectList.Add(element1);
+        GetEffectList().Add(element1);
     }
 
     public void AppendRandomFireworkVFX() {
@@ -342,7 +371,7 @@ public class GameManagerScript : MonoBehaviour
         element1.endTime = element1.startTime + 2f;
 
         timelineController.AddCreationElement(element1);
-        effectList.Add(element1);
+        GetEffectList().Add(element1);
     }
 
     public void AppendRandomFireCircleVFX() {
@@ -358,7 +387,7 @@ public class GameManagerScript : MonoBehaviour
         element1.endTime = element1.startTime + 2f;
 
         timelineController.AddCreationElement(element1);
-        effectList.Add(element1);
+        GetEffectList().Add(element1);
     }
 
     /**
@@ -414,67 +443,7 @@ public class GameManagerScript : MonoBehaviour
      */
 
     public void Reset(){
-        timelineController.ClearTimeline();
-        effectList = new List<CreationElement>();
-    }
-
-    public void SaveEffectList(){
-        string json;
-        for (int i=0; i<effectList.Count; i++) {
-            json = JsonUtility.ToJson(effectList[i]);
-            string path = GetFilePath("effectlist" + i.ToString() + ".txt");
-            FileStream fileStream = new FileStream(path, FileMode.Create);
-
-            using (StreamWriter writer = new StreamWriter(fileStream))
-            {
-                writer.Write(json);
-                Debug.Log(json);
-            }
-        }
-    }
-
-    public void ClearSave()
-    {
-        string[] files = Directory.GetFiles(Application.persistentDataPath);
-
-        for (int i=0; i<files.Length; i++) {
-            if (File.Exists(files[i])) {
-                File.Delete(files[i]);
-            }
-            else {
-                Debug.LogWarning("File not found");
-            }
-        }
-    }
-
-    public void LoadEffectList(){
-        string json;
-        string[] files = Directory.GetFiles(Application.persistentDataPath);
-        effectList = new List<CreationElement>();
-        timelineController.ClearTimeline();
-
-        for (int i=0; i<files.Length; i++) {
-            if (File.Exists(files[i])) {
-                using (StreamReader reader = new StreamReader(files[i]))
-                {
-                    json = reader.ReadToEnd();
-                    effectList.Add(new CreationElement());
-                    JsonUtility.FromJsonOverwrite(json, effectList[effectList.Count-1]);
-                    timelineController.AddCreationElement(effectList[effectList.Count-1]);                
-                }
-            }
-            else {
-                Debug.LogWarning("File not found");
-            }
-        }
-        
-        string path = GetFilePath("effectlist.txt");
-        
-    }
-    
-    private string GetFilePath(string fileName)
-    {
-        Debug.Log(Application.persistentDataPath);
-        return Application.persistentDataPath + "/" + fileName;
+        timelineController.ClearEffectsFromTimeline();
+        SetEffectList(new List<CreationElement>());
     }
 }

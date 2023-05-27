@@ -22,6 +22,7 @@ public class TimelineController : MonoBehaviour
         public CreationElement.Type type;
         public List<CreationElement> creationElements;
         public List<GameObject> creationElementBlocks;
+        public GameObject trackBlock = null;
         public bool isSelected;
 
         public List<CreationElement> creationElementsToAdd;
@@ -37,12 +38,9 @@ public class TimelineController : MonoBehaviour
 
     private List<Channel> _channels = new List<Channel>();
 
-
-    private List<GameObject> _channelTrackGameObjects = new List<GameObject>();
+    private GameObject _waveformTrackGameObject;
     private List<GameObject> _channelTrackLineGameObjects = null;
     private List<GameObject> _timelineLabelGameObjects = null;
-    private GameObject _waveformTrackGameObject;
-
 
     private int _selectedIndex = 0;
 
@@ -139,6 +137,7 @@ public class TimelineController : MonoBehaviour
         // Position Waveform Track
         if (_waveformTrackGameObject == null) {
             _waveformTrackGameObject = CreateTrackBlock();
+            _waveformTrackGameObject.transform.SetParent(timeline.transform);
 
             // Set the waveform on the selected channel
             Renderer renderer = _waveformTrackGameObject.GetComponent<Renderer>();
@@ -153,12 +152,15 @@ public class TimelineController : MonoBehaviour
             Channel channel = _channels[i];
             
             // Get or create channels
-            GameObject channelTrackGameObject = GetOrCreateNthChannelTrackBlock(channel, i);
+            if (!channel.trackBlock) {
+                channel.trackBlock = CreateTrackBlock();
+                channel.trackBlock.transform.SetParent(timeline.transform);
+            }
 
             // Re-position the channel
-            Vector3 channelTrackLocalPos = channelTrackGameObject.transform.localPosition;
+            Vector3 channelTrackLocalPos = channel.trackBlock.transform.localPosition;
             float channelPosX = timelineStartingPosX + (i + 1) * (trackWidth + gap);
-            channelTrackGameObject.transform.localPosition = new Vector3(channelPosX, channelTrackLocalPos.y, channelTrackLocalPos.z);
+            channel.trackBlock.transform.localPosition = new Vector3(channelPosX, channelTrackLocalPos.y, channelTrackLocalPos.z);
         }
 
         int numDemarcations = Mathf.CeilToInt(audioSource.clip.length);
@@ -260,16 +262,6 @@ public class TimelineController : MonoBehaviour
         }
     }
 
-    private GameObject GetOrCreateNthChannelTrackBlock(Channel channel, int i) {
-        if (i < _channelTrackGameObjects.Count) {
-            return _channelTrackGameObjects[i];
-        }
-
-        GameObject channelTrackGameObject = CreateTrackBlock();
-        _channelTrackGameObjects.Add(channelTrackGameObject);
-        return channelTrackGameObject;
-    }
-
     private GameObject CreateTrackBlock() {
         GameObject trackBlock = Instantiate(trackPrefab);
         float audioLength = audioSource.clip.length;
@@ -279,7 +271,6 @@ public class TimelineController : MonoBehaviour
 
         Vector3 trackLocalPosition = trackBlock.transform.localPosition;
         trackBlock.transform.localPosition = new Vector3(trackLocalPosition.x, 0, audioLength/2.0f);
-        trackBlock.transform.SetParent(timeline.transform);
 
         return trackBlock;
     }
@@ -348,7 +339,7 @@ public class TimelineController : MonoBehaviour
         timelineCursor.SetActive(true);
     }
     
-    public void ClearTimeline() {
+    public void ClearEffectsFromTimeline() {
         for (int i=0; i<_channels.Count; i++) {
             for (int j=0; j<_channels[i].creationElementBlocks.Count; j++) {
                 if (_channels[i].creationElementBlocks != null) {
@@ -366,5 +357,35 @@ public class TimelineController : MonoBehaviour
 
         creationElementBlock.GetComponent<Renderer>().material.color = randomColor;
         creationElementBlock.transform.localPosition = creationElement.position;
+    }
+
+    public void CompleteResetTimeline() {
+        Destroy(_waveformTrackGameObject);
+        _waveformTrackGameObject = null;
+
+        foreach (var channel in _channels) {
+            Destroy(channel.trackBlock);
+        }
+
+        foreach (var line in _channelTrackLineGameObjects) {
+           Destroy(line);
+        }
+        _channelTrackLineGameObjects.Clear();
+        _channelTrackLineGameObjects = null;
+
+        foreach(var labelGameObject in _timelineLabelGameObjects) {
+            Destroy(labelGameObject);
+        }
+        _timelineLabelGameObjects.Clear();
+        _timelineLabelGameObjects = null;
+
+        foreach (var channel in _channels) {
+            channel.creationElements.Clear();
+            foreach (var creationElementBlock in channel.creationElementBlocks) {
+                Destroy(creationElementBlock);
+            }
+            channel.creationElementBlocks.Clear();
+        }
+
     }
 }
