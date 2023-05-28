@@ -32,21 +32,33 @@ public class GameManagerScript : MonoBehaviour
     public AudioReverbFilter reverbFilter;
     public AudioEchoFilter echoFilter;
 
-    private List<CreationElement> effectList = new List<CreationElement>();
+    public List<AudioClip> audioClips;
+    private Dictionary<int, List<CreationElement>> effectListMap = new Dictionary<int, List<CreationElement>>();
+
+    // selected audio clip == first audio clip
+    private int audioClipIndex = 0;
+    private int nextAudioClipIndex = 0;
 
     // Start is called before the first frame update
     void Start()
     {
         StopReverb();
         StopEcho();
+
+        // Make the timeline display the selected song
+        audioSource.clip = audioClips[audioClipIndex];
+        Stop();
+        for (int i = 0; i < audioClips.Count; i += 1) {
+            effectListMap[i] = new List<CreationElement>();
+        }
     }
 
-    private List<CreationElement> GetEffectList() {
-        return effectList;
+    private List<CreationElement> GetSelectedEffectList() {
+        return effectListMap[audioClipIndex];
     }
 
-    private void SetEffectList(List<CreationElement> otherEffectList) {
-        effectList = otherEffectList;
+    private void ResetSelectedEffectList(List<CreationElement> effectList) {
+        effectListMap[audioClipIndex] = effectList;
     }
 
     void Update(){
@@ -78,8 +90,33 @@ public class GameManagerScript : MonoBehaviour
                 AppendPinkSkyboxEffect();
             }
 
+            if (Input.GetKeyDown("j")) {
+                Save();
+            }
+
+            if (Input.GetKeyDown("l")) {
+                Load();
+            }
+
             if (Input.GetKeyDown("c")) {
                 Reset();
+            }
+
+            if (Input.GetKeyDown("n")) {
+                GoToNextSong();
+            }
+        }
+
+        // Change songs, if necessary
+        if (nextAudioClipIndex != audioClipIndex) {
+            audioClipIndex = nextAudioClipIndex;
+            audioSource.clip = audioClips[audioClipIndex];
+            timelineController.CompleteResetTimeline();
+
+            Stop();
+
+            foreach (var creationElement in GetSelectedEffectList()) {
+                timelineController.AddCreationElement(creationElement);
             }
         }
 
@@ -132,8 +169,8 @@ public class GameManagerScript : MonoBehaviour
 
         if (audioSource.isPlaying) {
             // Play VFX
-            for (int i = 0; i < GetEffectList().Count; i += 1) {
-                CreationElement effect = GetEffectList()[i];
+            for (int i = 0; i < GetSelectedEffectList().Count; i += 1) {
+                CreationElement effect = GetSelectedEffectList()[i];
                 if (effect.startTime <= audioSource.time && audioSource.time <= effect.endTime) {
                     if (effect.type == CreationElement.Type.VFX && !effectsPlaying.Contains(effect)) {
                         StartCoroutine(StartThenStopVFX(effect));
@@ -143,8 +180,8 @@ public class GameManagerScript : MonoBehaviour
 
             CreationElement.EffectName skyboxType = CreationElement.EffectName.NeutralSkybox;
 
-            for (int i = 0; i < GetEffectList().Count; i += 1) {
-                CreationElement effect = GetEffectList()[i];
+            for (int i = 0; i < GetSelectedEffectList().Count; i += 1) {
+                CreationElement effect = GetSelectedEffectList()[i];
                 if (effect.startTime <= audioSource.time && audioSource.time <= effect.endTime) {
                     if (effect.type == CreationElement.Type.Skybox) {
                         skyboxType = effect.effectName;
@@ -194,6 +231,10 @@ public class GameManagerScript : MonoBehaviour
         }
     }
 
+    public void GoToNextSong() {
+        nextAudioClipIndex = (audioClipIndex + 1) % audioClips.Count;
+    }
+
     public void Clapped() {
         Vector3 lastClappedPos = GetComponent<Oculus.Interaction.HandClapInteractor>().GetLastClappedPosition();
         Vector3 playerPos = player.transform.position;
@@ -217,8 +258,8 @@ public class GameManagerScript : MonoBehaviour
     }
 
     private bool IsReverbEffectEnabled() {
-        for (int i = 0; i < GetEffectList().Count; i += 1) {
-            CreationElement effect = GetEffectList()[i];
+        for (int i = 0; i < GetSelectedEffectList().Count; i += 1) {
+            CreationElement effect = GetSelectedEffectList()[i];
 
             if (!(effect.startTime <= audioSource.time && audioSource.time <= effect.endTime)) {
                 continue;
@@ -232,8 +273,8 @@ public class GameManagerScript : MonoBehaviour
     }
 
     private bool IsEchoEffectEnabled() {
-        for (int i = 0; i < GetEffectList().Count; i += 1) {
-            CreationElement effect = GetEffectList()[i];
+        for (int i = 0; i < GetSelectedEffectList().Count; i += 1) {
+            CreationElement effect = GetSelectedEffectList()[i];
 
             if (!(effect.startTime <= audioSource.time && audioSource.time <= effect.endTime)) {
                 continue;
@@ -286,7 +327,7 @@ public class GameManagerScript : MonoBehaviour
         element1.endTime = element1.startTime + 1.5f;
 
         timelineController.AddCreationElement(element1);
-        GetEffectList().Add(element1);
+        GetSelectedEffectList().Add(element1);
     }
 
     public void AppendReverbEffect() {
@@ -298,7 +339,7 @@ public class GameManagerScript : MonoBehaviour
         element1.endTime = element1.startTime + 1.5f;
 
         timelineController.AddCreationElement(element1);
-        GetEffectList().Add(element1);
+        GetSelectedEffectList().Add(element1);
     }
 
     public void AppendBlueSkyboxEffect() {
@@ -310,7 +351,7 @@ public class GameManagerScript : MonoBehaviour
         element1.endTime = element1.startTime + 1.5f;
 
         timelineController.AddCreationElement(element1);
-        GetEffectList().Add(element1);
+        GetSelectedEffectList().Add(element1);
     }
 
 
@@ -323,7 +364,7 @@ public class GameManagerScript : MonoBehaviour
         element1.endTime = element1.startTime + 1.5f;
 
         timelineController.AddCreationElement(element1);
-        GetEffectList().Add(element1);
+        GetSelectedEffectList().Add(element1);
     }
 
     public void AppendRandomFireworkVFX() {
@@ -339,7 +380,7 @@ public class GameManagerScript : MonoBehaviour
         element1.endTime = element1.startTime + 2f;
 
         timelineController.AddCreationElement(element1);
-        GetEffectList().Add(element1);
+        GetSelectedEffectList().Add(element1);
     }
 
     public void AppendRandomFireCircleVFX() {
@@ -355,7 +396,7 @@ public class GameManagerScript : MonoBehaviour
         element1.endTime = element1.startTime + 2f;
 
         timelineController.AddCreationElement(element1);
-        GetEffectList().Add(element1);
+        GetSelectedEffectList().Add(element1);
     }
 
     /**
@@ -407,11 +448,64 @@ public class GameManagerScript : MonoBehaviour
     }
 
     /**
-     * Save/Reset
+     * Reset
      */
 
     public void Reset(){
         timelineController.ClearEffectsFromTimeline();
-        SetEffectList(new List<CreationElement>());
+        ResetSelectedEffectList(new List<CreationElement>());
+    }
+
+    /**
+     * Save/Load
+     * TODO: This code probably doesn't work after song switching. Test to make sure it does.
+     */
+    public void Save(){
+        string path = GetFilePath("effectlist.txt");
+        FileStream fileStream = new FileStream(path, FileMode.Create);
+
+        using (StreamWriter writer = new StreamWriter(fileStream)) {
+            string json = JsonUtility.ToJson(effectListMap);
+            writer.Write(json);
+            Debug.Log(json);
+        }
+    }
+
+    public void ClearSave(){
+        string path = GetFilePath("effectlist.txt");
+        if (File.Exists(path)) {
+            File.Delete(path);
+        } else {
+            Debug.LogWarning("Save file not found");
+        }
+    }
+
+    public void Load(){
+        string path = GetFilePath("effectlist.txt");
+
+        for (int i = 0; i < audioClips.Count; i += 1) {
+            effectListMap[i] = new List<CreationElement>();
+        }
+
+        if (File.Exists(path)) {
+            using (StreamReader reader = new StreamReader(path)) {
+                string json = reader.ReadToEnd();
+                JsonUtility.FromJsonOverwrite(json, effectListMap);
+                timelineController.CompleteResetTimeline();
+
+                Stop();
+
+                foreach (var creationElement in GetSelectedEffectList()) {
+                    timelineController.AddCreationElement(creationElement);
+                }                
+            }
+        } else {
+            Debug.LogWarning("Save file not found");
+        }
+    }
+
+    private string GetFilePath(string fileName){
+        Debug.Log(Application.persistentDataPath);
+        return Application.persistentDataPath + "/" + fileName;
     }
 }
