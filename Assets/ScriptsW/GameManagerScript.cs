@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 using TMPro;
 using System.IO;
 
@@ -12,9 +13,11 @@ public class GameManagerScript : MonoBehaviour
     public Material skyboxMaterial;
     public GameObject player;
     public Oculus.Interaction.ScrubberUI scrubberUI;
+    public Image scrubberImage;
 
     //public TextMeshProUGUI timeText;
     public TMP_Text timeText;
+    public TMP_Text songNameText;
 
     enum GameMode {
         Edit,
@@ -33,11 +36,14 @@ public class GameManagerScript : MonoBehaviour
     public AudioEchoFilter echoFilter;
 
     public List<AudioClip> audioClips;
+    public List<Sprite> audioClipScrubberImages;
     private Dictionary<int, List<CreationElement>> effectListMap = new Dictionary<int, List<CreationElement>>();
 
     // selected audio clip == first audio clip
     private int audioClipIndex = 0;
     private int nextAudioClipIndex = 0;
+
+    public StatefulButton playPauseButton;
 
     // Start is called before the first frame update
     void Start()
@@ -47,6 +53,7 @@ public class GameManagerScript : MonoBehaviour
 
         // Make the timeline display the selected song
         audioSource.clip = audioClips[audioClipIndex];
+        scrubberImage.sprite = audioClipScrubberImages[audioClipIndex];
         Stop();
         for (int i = 0; i < audioClips.Count; i += 1) {
             effectListMap[i] = new List<CreationElement>();
@@ -111,6 +118,7 @@ public class GameManagerScript : MonoBehaviour
         if (nextAudioClipIndex != audioClipIndex) {
             audioClipIndex = nextAudioClipIndex;
             audioSource.clip = audioClips[audioClipIndex];
+            scrubberImage.sprite = audioClipScrubberImages[audioClipIndex];
             timelineController.CompleteResetTimeline();
 
             Stop();
@@ -134,9 +142,9 @@ public class GameManagerScript : MonoBehaviour
         }
 
         int numSecondsElapsed = Mathf.FloorToInt(audioSource.time);
-        int totalSeconds = Mathf.FloorToInt(audioSource.clip.length);
 
-        timeText.text = SerializeSeconds(numSecondsElapsed) + "/" + SerializeSeconds(totalSeconds);
+        timeText.text = SerializeSeconds(numSecondsElapsed);
+        songNameText.text = audioSource.clip.name;
 
         // Input play/pause
         if (Input.GetKeyDown("space")) {
@@ -201,10 +209,7 @@ public class GameManagerScript : MonoBehaviour
                 UpdateSkyboxColor(pinkColor);
             }
 
-
-
             // Play SFX
-
             if (IsReverbEffectEnabled()) {
                 ApplyReverb();
             } else {
@@ -229,10 +234,19 @@ public class GameManagerScript : MonoBehaviour
         if (audioSource.time >= almostAudioEnd) {
             Stop();
         }
+
+        // Reset the Play/Pause button to Play, if the song isn't playing
+        if (!audioSource.isPlaying) {
+            playPauseButton.Reset();
+        }
     }
 
     public void GoToNextSong() {
         nextAudioClipIndex = (audioClipIndex + 1) % audioClips.Count;
+    }
+
+    public void GoToPreviousSong() {
+        nextAudioClipIndex = ((audioClipIndex + audioClips.Count) - 1) % audioClips.Count;
     }
 
     public void Clapped() {
@@ -240,11 +254,11 @@ public class GameManagerScript : MonoBehaviour
         Vector3 playerPos = player.transform.position;
 
         // float scale = 2f;
-        float scale = Random.Range(3f, 4f);
+        float scale = Random.Range(5f, 8f);
 
         Vector3 effectPosition = (lastClappedPos - playerPos) * scale + playerPos;
         effectPosition = new Vector3(effectPosition.x, lastClappedPos.y, effectPosition.z);
-        if (Random.Range(0, 2) == 0) {
+        if (Random.Range(0, 2) < 1) {
             AppendFireCircleVFX(effectPosition);
         } else {
             AppendFireworkVFX(effectPosition);
@@ -252,9 +266,10 @@ public class GameManagerScript : MonoBehaviour
     }
 
     private string SerializeSeconds(int seconds) {
+        int hours = seconds / (60 * 60);
         int minutes = seconds / 60;
         int secondsLeft = seconds % 60;
-        return $"{minutes.ToString().PadLeft(2,'0')}:{secondsLeft.ToString().PadLeft(2,'0')}";
+        return $"{hours.ToString().PadLeft(2,'0')} : {minutes.ToString().PadLeft(2,'0')} : {secondsLeft.ToString().PadLeft(2,'0')}";
     }
 
     private bool IsReverbEffectEnabled() {
