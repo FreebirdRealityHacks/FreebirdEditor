@@ -74,6 +74,31 @@ public class TimelineController : MonoBehaviour
     System.Random random = new System.Random(); 
 
     private Color GetColorFromCreationElement(CreationElement element) {
+        if (element.effectName == CreationElement.EffectName.Reverb) {
+            return rgba(191, 135, 0, 1);
+        }
+
+        if (element.effectName == CreationElement.EffectName.Echo) {
+            return rgba(220, 104, 3, 1);
+        }
+
+        if (element.effectName == CreationElement.EffectName.Firework) {
+            return rgba(11, 165, 236, 1);
+        }
+
+        if (element.effectName == CreationElement.EffectName.FireCircle) {
+            return rgba(61, 96, 135, 1);
+        }
+
+        if (element.effectName == CreationElement.EffectName.BlueSkybox) {
+            return rgba(207, 245, 105, 1);
+        }
+
+        if (element.effectName == CreationElement.EffectName.PinkSkybox) {
+            return rgba(117, 156, 89, 1);
+        }
+
+        // Just default to rng colors
         int channelIndex = GetChannelIndex(element);
         Color[] colors = COLORS[channelIndex];
         return colors[random.Next(0, colors.Length)];
